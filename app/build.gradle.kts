@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
 
     // Room
-    val room_version = "2.6.1" // Note: Changed this from 2.8.4 to 2.6.1 as 2.8.4 does not exist yet!
+    val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
@@ -69,4 +69,7 @@ dependencies {
 
     // Compose ViewModel integration
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+
+    // Coil for Image Loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
