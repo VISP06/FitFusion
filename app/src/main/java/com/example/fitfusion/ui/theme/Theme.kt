@@ -30,10 +30,11 @@ private val LightColorScheme = lightColorScheme(
 )
 
 // Retro-modern Japanese aesthetic: Zero rounded corners
+// Retro-modern Japanese aesthetic: Zero rounded corners
 val RetroShapes = Shapes(
-    small = RectangleShape,
-    medium = RectangleShape,
-    large = RectangleShape
+    small = RoundedCornerShape(0.dp),
+    medium = RoundedCornerShape(0.dp),
+    large = RoundedCornerShape(0.dp)
 )
 
 @Composable

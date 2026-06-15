@@ -56,7 +56,6 @@ fun StudioScreen(viewModel: StudioViewModel) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Top Section: Selection Row
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth().height(120.dp)
@@ -94,7 +93,6 @@ fun StudioScreen(viewModel: StudioViewModel) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Middle Section: Generate Button
             Button(
                 onClick = { viewModel.generateCombinations() },
                 modifier = Modifier
@@ -125,7 +123,6 @@ fun StudioScreen(viewModel: StudioViewModel) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Bottom Section: Results
             if (generatedOutfits.isNotEmpty()) {
                 Text(
                     text = "GENERATED LOOKS",

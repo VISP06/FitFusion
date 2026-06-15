@@ -3,66 +3,78 @@ package com.example.fitfusion
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Checkroom
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Style
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.fitfusion.ui.navigation.FitFusionNavGraph
+import com.example.fitfusion.ui.navigation.Screen
 import com.example.fitfusion.ui.theme.FitFusionTheme
 import com.example.fitfusion.ui.theme.NavyDeep
-import com.example.fitfusion.ui.wardrobe.WardrobeScreen
-import com.example.fitfusion.ui.wardrobe.WardrobeViewModel
-
-import com.example.fitfusion.ui.studio.StudioScreen
-import com.example.fitfusion.ui.studio.StudioViewModel
 
 class MainActivity : ComponentActivity() {
-    private val wardrobeViewModel: WardrobeViewModel by viewModels()
-    private val studioViewModel: StudioViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             FitFusionTheme {
-                MainScreen(wardrobeViewModel, studioViewModel)
+                MainScreen()
             }
         }
     }
 }
 
-sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    object Closet : Screen("closet", "CLOSET", Icons.Default.Checkroom)
-    object Studio : Screen("studio", "STUDIO", Icons.Default.ColorLens)
-    object Outfits : Screen("outfits", "OUTFITS", Icons.Default.Style)
-}
-
 @Composable
-fun MainScreen(wardrobeViewModel: WardrobeViewModel, studioViewModel: StudioViewModel) {
-    val items = listOf(Screen.Closet, Screen.Studio, Screen.Outfits)
-    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Closet) }
+fun MainScreen() {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    val screens = listOf(
+        Screen.Closet,
+        Screen.Studio,
+        Screen.Outfits
+    )
 
     Scaffold(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.border(top = 2.dp, color = NavyDeep)
+                modifier = Modifier.border(
+                    width = 2.dp,
+                    color = NavyDeep
+                )
             ) {
-                items.forEach { screen ->
+                screens.forEach { screen ->
+                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                    
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title, fontWeight = FontWeight.Bold) },
-                        selected = selectedScreen == screen,
-                        onClick = { selectedScreen = screen },
+                        icon = { Icon(screen.icon, contentDescription = screen.label) },
+                        label = { Text(screen.label, fontWeight = FontWeight.Bold) },
+                        selected = selected,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
+                            }
+                        },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NavyDeep,
                             unselectedIconColor = NavyDeep.copy(alpha = 0.5f),
@@ -74,26 +86,7 @@ fun MainScreen(wardrobeViewModel: WardrobeViewModel, studioViewModel: StudioView
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedScreen) {
-                is Screen.Closet -> WardrobeScreen(wardrobeViewModel)
-                is Screen.Studio -> StudioScreen(studioViewModel)
-                is Screen.Outfits -> PlaceholderScreen("OUTFITS")
-            }
+            FitFusionNavGraph(navController = navController)
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "$title COMING SOON",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Black,
-            color = NavyDeep
-        )
     }
 }

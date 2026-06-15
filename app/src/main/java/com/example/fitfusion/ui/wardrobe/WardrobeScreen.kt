@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +32,6 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
     val sheetState = rememberModalBottomSheetState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Subtle Retro Grid Background
         GridBackground()
 
         Scaffold(
@@ -105,7 +104,7 @@ fun WardrobeItemCard(item: ClothingItem) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CameraAlt,
+                    imageVector = Icons.Default.Camera,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(48.dp)
@@ -170,7 +169,7 @@ fun AddItemBottomSheet(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null)
+                        Icon(Icons.Default.Camera, contentDescription = null)
                         Text("CAMERA", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -184,7 +183,7 @@ fun AddItemBottomSheet(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                        Icon(Icons.Default.Photo, contentDescription = null)
                         Text("GALLERY", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -260,7 +259,7 @@ fun CategoryDropdown() {
             label = { Text("CATEGORY") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
             shape = RectangleShape,
             colors = OutlinedTextFieldDefaults.colors(
