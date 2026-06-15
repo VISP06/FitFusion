@@ -1,5 +1,10 @@
 package com.example.fitfusion.ui.wardrobe
 
+import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,9 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fitfusion.data.entity.ClothingItem
 import com.example.fitfusion.ui.theme.NavyDeep
 
@@ -29,7 +37,26 @@ import com.example.fitfusion.ui.theme.NavyDeep
 fun WardrobeScreen(viewModel: WardrobeViewModel) {
     val items by viewModel.clothingItems.collectAsState()
     val isSheetOpen by viewModel.isSheetOpen.collectAsState()
+    val currentPhotoUri by viewModel.currentPhotoUri.collectAsState()
     val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
+
+    // Launchers
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        viewModel.setPhotoUri(uri)
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (!success) {
+            viewModel.clearPhotoUri()
+        }
+    }
+
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         GridBackground()
@@ -77,7 +104,22 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
         if (isSheetOpen) {
             AddItemBottomSheet(
                 onDismiss = { viewModel.closeSheet() },
-                sheetState = sheetState
+                sheetState = sheetState,
+                currentPhotoUri = currentPhotoUri,
+                onGalleryClick = {
+                    galleryLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                onCameraClick = {
+                    val uri = context.createTempPictureUri()
+                    tempCameraUri = uri
+                    viewModel.setPhotoUri(uri)
+                    cameraLauncher.launch(uri)
+                },
+                onRetakeClick = {
+                    viewModel.clearPhotoUri()
+                }
             )
         }
     }
@@ -132,7 +174,11 @@ fun WardrobeItemCard(item: ClothingItem) {
 @Composable
 fun AddItemBottomSheet(
     onDismiss: () -> Unit,
-    sheetState: SheetState
+    sheetState: SheetState,
+    currentPhotoUri: Uri?,
+    onGalleryClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onRetakeClick: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -155,36 +201,62 @@ fun AddItemBottomSheet(
                 color = NavyDeep
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { /* TODO */ },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(100.dp)
-                        .border(2.dp, NavyDeep, RectangleShape),
-                    shape = RectangleShape,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
+            if (currentPhotoUri != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Camera, contentDescription = null)
-                        Text("CAMERA", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    AsyncImage(
+                        model = currentPhotoUri,
+                        contentDescription = "Selected Photo",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .border(2.dp, NavyDeep, RectangleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    TextButton(onClick = onRetakeClick) {
+                        Text(
+                            text = "RETAKE / RESELECT",
+                            color = NavyDeep,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.labelLarge
+                        )
                     }
                 }
-                OutlinedButton(
-                    onClick = { /* TODO */ },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(100.dp)
-                        .border(2.dp, NavyDeep, RectangleShape),
-                    shape = RectangleShape,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Photo, contentDescription = null)
-                        Text("GALLERY", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    OutlinedButton(
+                        onClick = onCameraClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(100.dp)
+                            .border(2.dp, NavyDeep, RectangleShape),
+                        shape = RectangleShape,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Camera, contentDescription = null)
+                            Text("CAMERA", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onGalleryClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(100.dp)
+                            .border(2.dp, NavyDeep, RectangleShape),
+                        shape = RectangleShape,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyDeep)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Photo, contentDescription = null)
+                            Text("GALLERY", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

@@ -16,22 +16,42 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.fitfusion.data.database.WardrobeDao
+import com.example.fitfusion.data.database.WardrobeDatabase
 import com.example.fitfusion.ui.navigation.FitFusionNavGraph
 import com.example.fitfusion.ui.navigation.Screen
 import com.example.fitfusion.ui.theme.FitFusionTheme
 import com.example.fitfusion.ui.theme.NavyDeep
 import com.example.fitfusion.ui.theme.BeigeAccent
+import com.example.fitfusion.ui.wardrobe.WardrobeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val database = WardrobeDatabase.getDatabase(applicationContext)
+        val dao = database.wardrobeDao()
+
+        // Simple factory inside MainActivity to pass DAO to ViewModel
+        val wardrobeViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(WardrobeViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return WardrobeViewModel(dao) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        })[WardrobeViewModel::class.java]
+
         setContent {
             FitFusionTheme {
-                MainScreen()
+                MainScreen(wardrobeViewModel)
             }
         }
     }
@@ -39,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(wardrobeViewModel: WardrobeViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -105,7 +125,10 @@ fun MainScreen() {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            FitFusionNavGraph(navController = navController)
+            FitFusionNavGraph(
+                navController = navController,
+                wardrobeViewModel = wardrobeViewModel
+            )
         }
     }
 }

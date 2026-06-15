@@ -72,4 +72,7 @@ dependencies {
 
     // Coil for Image Loading
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Gson for Room TypeConverters
+    implementation("com.google.code.gson:gson:2.10.1")
 }
