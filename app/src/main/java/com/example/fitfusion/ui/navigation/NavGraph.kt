@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.fitfusion.ui.outfits.OutfitsScreen
+import com.example.fitfusion.ui.outfits.OutfitsViewModel
 import com.example.fitfusion.ui.studio.StudioScreen
 import com.example.fitfusion.ui.studio.StudioViewModel
 import com.example.fitfusion.ui.theme.NavyDeep
@@ -44,22 +46,8 @@ fun FitFusionNavGraph(navController: NavHostController) {
             StudioScreen(studioViewModel)
         }
         composable(Screen.Outfits.route) {
-            PlaceholderScreen("OUTFITS")
+            val outfitsViewModel: OutfitsViewModel = viewModel()
+            OutfitsScreen(outfitsViewModel)
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "$title COMING SOON",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Black,
-            color = NavyDeep
-        )
     }
 }
