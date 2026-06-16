@@ -1,13 +1,14 @@
 package com.example.fitfusion.ui.wardrobe
 
 import android.net.Uri
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -56,7 +58,8 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
         }
     }
 
-    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+    // CAMERA BUG FIX: use rememberSaveable for temporary URI
+    var tempCameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         GridBackground()
@@ -95,7 +98,10 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(items) { item ->
-                        WardrobeItemCard(item)
+                        WardrobeItemCard(
+                            item = item,
+                            onDelete = { viewModel.deleteItem(item) }
+                        )
                     }
                 }
             }
@@ -119,19 +125,27 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
                 },
                 onRetakeClick = {
                     viewModel.clearPhotoUri()
-                }
+                },
+                viewModel = viewModel
             )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WardrobeItemCard(item: ClothingItem) {
+fun WardrobeItemCard(item: ClothingItem, onDelete: () -> Unit) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(0.8f)
-            .border(2.dp, NavyDeep, RectangleShape),
+            .border(2.dp, NavyDeep, RectangleShape)
+            .combinedClickable(
+                onClick = { },
+                onLongClick = { showDeleteDialog = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -145,12 +159,21 @@ fun WardrobeItemCard(item: ClothingItem) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Camera,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(48.dp)
-                )
+                if (item.imageUri != null) {
+                    AsyncImage(
+                        model = item.imageUri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Camera,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             }
             HorizontalDivider(color = NavyDeep, thickness = 2.dp)
             Column(modifier = Modifier.padding(8.dp)) {
@@ -168,6 +191,58 @@ fun WardrobeItemCard(item: ClothingItem) {
             }
         }
     }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    text = "DELETE ITEM?",
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp,
+                    color = NavyDeep
+                )
+            },
+            text = {
+                Text(
+                    text = "THIS WILL PERMANENTLY REMOVE THIS ITEM FROM YOUR CLOSET.",
+                    fontWeight = FontWeight.Bold,
+                    color = NavyDeep.copy(alpha = 0.7f)
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RectangleShape,
+            modifier = Modifier.border(2.dp, NavyDeep, RectangleShape),
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .border(2.dp, NavyDeep, RectangleShape),
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NavyDeep,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("YES, DELETE", fontWeight = FontWeight.Black)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(
+                        "CANCEL",
+                        fontWeight = FontWeight.Bold,
+                        color = NavyDeep
+                    )
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -178,8 +253,14 @@ fun AddItemBottomSheet(
     currentPhotoUri: Uri?,
     onGalleryClick: () -> Unit,
     onCameraClick: () -> Unit,
-    onRetakeClick: () -> Unit
+    onRetakeClick: () -> Unit,
+    viewModel: WardrobeViewModel
 ) {
+    // STATE HOISTING FIX: state variables for the form
+    var selectedCategory by rememberSaveable { mutableStateOf("T-shirt") }
+    var color by rememberSaveable { mutableStateOf("") }
+    var material by rememberSaveable { mutableStateOf("") }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -261,36 +342,45 @@ fun AddItemBottomSheet(
                 }
             }
 
-            CategoryDropdown()
+            CategoryDropdown(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
 
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = color,
+                onValueChange = { color = it },
                 label = { Text("COLOR (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
+                readOnly = true,   // TEXT FIELD FIX
+                enabled = false,    // TEXT FIELD FIX
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NavyDeep,
-                    unfocusedBorderColor = NavyDeep,
-                    focusedLabelColor = NavyDeep
+                    disabledBorderColor = NavyDeep,
+                    disabledLabelColor = NavyDeep,
+                    disabledTextColor = NavyDeep
                 )
             )
 
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = material,
+                onValueChange = { material = it },
                 label = { Text("MATERIAL (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
+                readOnly = true,   // TEXT FIELD FIX
+                enabled = false,    // TEXT FIELD FIX
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NavyDeep,
-                    unfocusedBorderColor = NavyDeep,
-                    focusedLabelColor = NavyDeep
+                    disabledBorderColor = NavyDeep,
+                    disabledLabelColor = NavyDeep,
+                    disabledTextColor = NavyDeep
                 )
             )
 
             Button(
-                onClick = { onDismiss() },
+                onClick = { 
+                    viewModel.saveItem(selectedCategory, color, material) // SAVE BUTTON FIX
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -311,13 +401,15 @@ fun AddItemBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryDropdown() {
+fun CategoryDropdown(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
     val categories = listOf(
         "T-shirt", "Shirt/Blouse", "Hoodie/Sweater", "Jacket/Coat",
         "Trousers/Jeans", "Shorts", "Skirt", "Dress", "Shoes", "Accessories"
     )
     var expanded by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf(categories[0]) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -351,7 +443,7 @@ fun CategoryDropdown() {
                 DropdownMenuItem(
                     text = { Text(category, fontWeight = FontWeight.Medium) },
                     onClick = {
-                        selectedCategory = category
+                        onCategorySelected(category)
                         expanded = false
                     }
                 )

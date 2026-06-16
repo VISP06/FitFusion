@@ -43,17 +43,25 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
         clearPhotoUri()
     }
 
-    suspend fun saveItem(category: String, color: String, material: String) {
+    fun saveItem(category: String, color: String, material: String) {
         val uri = currentPhotoUri.value
         if (uri != null) {
-            val newItem = ClothingItem(
-                imageUri = uri.toString(),
-                category = category,
-                color = color,
-                material = material
-            )
-            dao.insertClothingItem(newItem)
-            closeSheet()
+            viewModelScope.launch {
+                val newItem = ClothingItem(
+                    imageUri = uri.toString(),
+                    category = category,
+                    color = color,
+                    material = material
+                )
+                dao.insertClothingItem(newItem)
+                closeSheet()
+            }
+        }
+    }
+
+    fun deleteItem(item: ClothingItem) {
+        viewModelScope.launch {
+            dao.deleteClothingItem(item)
         }
     }
 }

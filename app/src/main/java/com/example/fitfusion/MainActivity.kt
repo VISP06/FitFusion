@@ -6,13 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,13 +31,14 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.database.WardrobeDatabase
 import com.example.fitfusion.ui.navigation.FitFusionNavGraph
 import com.example.fitfusion.ui.navigation.Screen
+import com.example.fitfusion.ui.outfits.OutfitsViewModel
+import com.example.fitfusion.ui.studio.StudioViewModel
+import com.example.fitfusion.ui.theme.BeigeAccent
 import com.example.fitfusion.ui.theme.FitFusionTheme
 import com.example.fitfusion.ui.theme.NavyDeep
-import com.example.fitfusion.ui.theme.BeigeAccent
 import com.example.fitfusion.ui.wardrobe.WardrobeViewModel
 
 class MainActivity : ComponentActivity() {
@@ -38,20 +48,24 @@ class MainActivity : ComponentActivity() {
         val database = WardrobeDatabase.getDatabase(applicationContext)
         val dao = database.wardrobeDao()
 
-        // Simple factory inside MainActivity to pass DAO to ViewModel
-        val wardrobeViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
+        val factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(WardrobeViewModel::class.java)) {
-                    @Suppress("UNCHECKED_CAST")
-                    return WardrobeViewModel(dao) as T
+                return when {
+                    modelClass.isAssignableFrom(WardrobeViewModel::class.java) -> WardrobeViewModel(dao) as T
+                    modelClass.isAssignableFrom(StudioViewModel::class.java) -> StudioViewModel(dao) as T
+                    modelClass.isAssignableFrom(OutfitsViewModel::class.java) -> OutfitsViewModel(dao) as T
+                    else -> throw IllegalArgumentException("Unknown ViewModel class")
                 }
-                throw IllegalArgumentException("Unknown ViewModel class")
             }
-        })[WardrobeViewModel::class.java]
+        }
+
+        val wardrobeViewModel = ViewModelProvider(this, factory)[WardrobeViewModel::class.java]
+        val studioViewModel = ViewModelProvider(this, factory)[StudioViewModel::class.java]
+        val outfitsViewModel = ViewModelProvider(this, factory)[OutfitsViewModel::class.java]
 
         setContent {
             FitFusionTheme {
-                MainScreen(wardrobeViewModel)
+                MainScreen(wardrobeViewModel, studioViewModel, outfitsViewModel)
             }
         }
     }
@@ -59,7 +73,11 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(wardrobeViewModel: WardrobeViewModel) {
+fun MainScreen(
+    wardrobeViewModel: WardrobeViewModel,
+    studioViewModel: StudioViewModel,
+    outfitsViewModel: OutfitsViewModel
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -127,7 +145,9 @@ fun MainScreen(wardrobeViewModel: WardrobeViewModel) {
         Box(modifier = Modifier.padding(innerPadding)) {
             FitFusionNavGraph(
                 navController = navController,
-                wardrobeViewModel = wardrobeViewModel
+                wardrobeViewModel = wardrobeViewModel,
+                studioViewModel = studioViewModel,
+                outfitsViewModel = outfitsViewModel
             )
         }
     }

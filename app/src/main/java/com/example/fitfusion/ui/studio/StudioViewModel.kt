@@ -2,27 +2,25 @@ package com.example.fitfusion.ui.studio
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.entity.ClothingItem
 import com.example.fitfusion.data.entity.Outfit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class StudioViewModel : ViewModel() {
+class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
 
-    private val _availableClothes = MutableStateFlow<List<ClothingItem>>(
-        listOf(
-            ClothingItem(1, null, "T-shirt", "Teal", "Cotton"),
-            ClothingItem(2, null, "Jacket", "Navy", "Wool"),
-            ClothingItem(3, null, "Shorts", "Coral", "Linen"),
-            ClothingItem(4, null, "Shoes", "Beige", "Leather"),
-            ClothingItem(5, null, "Hoodie", "Gray", "Fleece"),
-            ClothingItem(6, null, "Accessories", "Gold", "Metal")
+    val availableClothes: StateFlow<List<ClothingItem>> = dao.getAllClothingItems()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
-    )
-    val availableClothes: StateFlow<List<ClothingItem>> = _availableClothes.asStateFlow()
 
     private val _selectedClothes = MutableStateFlow<Set<Int>>(emptySet())
     val selectedClothes: StateFlow<Set<Int>> = _selectedClothes.asStateFlow()
@@ -49,19 +47,26 @@ class StudioViewModel : ViewModel() {
             // Simulate AI Processing
             delay(2000)
 
-            val selectedItems = _availableClothes.value.filter { _selectedClothes.value.contains(it.id) }
-            val pool = if (selectedItems.isEmpty()) _availableClothes.value else selectedItems
+            val allItems = availableClothes.value
+            val selectedIds = _selectedClothes.value
+            val pool = if (selectedIds.isEmpty()) allItems else allItems.filter { selectedIds.contains(it.id) }
 
-            val results = (1..3).map { index ->
-                Outfit(
-                    id = index,
-                    name = "COMBO 0$index",
-                    items = pool.shuffled().take((2..4).random())
-                )
+            if (pool.isNotEmpty()) {
+                val results = (1..3).map { index ->
+                    Outfit(
+                        name = "COMBO 0$index",
+                        items = pool.shuffled().take((2..4).random().coerceAtMost(pool.size))                    )
+                }
+                _generatedOutfits.value = results
             }
 
-            _generatedOutfits.value = results
             _isLoading.value = false
+        }
+    }
+
+    fun saveOutfit(outfit: Outfit) {
+        viewModelScope.launch {
+            dao.insertOutfit(outfit)
         }
     }
 }

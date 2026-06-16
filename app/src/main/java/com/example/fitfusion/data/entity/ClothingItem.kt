@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "clothing_items")
 data class ClothingItem(
-    @PrimaryKey(autoGenerate = true) 
+    @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val imageUri: String,
+    val imageUri: String?,
     val category: String,
     val color: String,
     val material: String

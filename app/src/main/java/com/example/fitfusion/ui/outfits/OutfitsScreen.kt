@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fitfusion.data.entity.ClothingItem
 import com.example.fitfusion.data.entity.Outfit
 import com.example.fitfusion.ui.theme.CoralMuted
@@ -31,7 +36,7 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -43,6 +48,12 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
             items(outfits) { outfit ->
                 OutfitCard(
                     outfit = outfit,
+                    onDelete = {
+                        viewModel.deleteOutfit(outfit)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Outfit deleted")
+                        }
+                    },
                     onPreviewClick = {
                         scope.launch {
                             snackbarHostState.showSnackbar(
@@ -60,6 +71,7 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
 @Composable
 fun OutfitCard(
     outfit: Outfit,
+    onDelete: () -> Unit,
     onPreviewClick: () -> Unit
 ) {
     Card(
@@ -87,13 +99,22 @@ fun OutfitCard(
                         )
                     }
             ) {
-                Text(
-                    text = outfit.name,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 18.sp,
-                    color = BeigeAccent,
-                    letterSpacing = 2.sp
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = outfit.name,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 18.sp,
+                        color = BeigeAccent,
+                        letterSpacing = 2.sp
+                    )
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BeigeAccent)
+                    }
+                }
             }
 
             // Items Row
@@ -150,15 +171,24 @@ fun ClothingItemThumbnail(item: ClothingItem) {
                 .border(1.dp, NavyDeep),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = item.category.take(1).uppercase(),
-                fontWeight = FontWeight.Black,
-                color = NavyDeep
-            )
+            if (item.imageUri != null) {
+                AsyncImage(
+                    model = item.imageUri,
+                    contentDescription = item.category,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = item.category.take(1).uppercase(),
+                    fontWeight = FontWeight.Black,
+                    color = NavyDeep
+                )
+            }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = item.category,
+            text = item.category.uppercase(),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             color = NavyDeep,

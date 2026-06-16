@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,7 +25,9 @@ sealed class Screen(val route: String, val icon: ImageVector, val label: String)
 @Composable
 fun FitFusionNavGraph(
     navController: NavHostController,
-    wardrobeViewModel: WardrobeViewModel
+    wardrobeViewModel: WardrobeViewModel,
+    studioViewModel: StudioViewModel,
+    outfitsViewModel: OutfitsViewModel
 ) {
     NavHost(
         navController = navController,
@@ -36,11 +37,9 @@ fun FitFusionNavGraph(
             WardrobeScreen(wardrobeViewModel)
         }
         composable(Screen.Studio.route) {
-            val studioViewModel: StudioViewModel = viewModel()
             StudioScreen(studioViewModel)
         }
         composable(Screen.Outfits.route) {
-            val outfitsViewModel: OutfitsViewModel = viewModel()
             OutfitsScreen(outfitsViewModel)
         }
     }
