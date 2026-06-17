@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -106,10 +108,13 @@ fun OutfitCard(
                 ) {
                     Text(
                         text = outfit.name,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
-                        fontSize = 18.sp,
                         color = BeigeAccent,
-                        letterSpacing = 2.sp
+                        letterSpacing = 2.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BeigeAccent)
@@ -147,7 +152,10 @@ fun OutfitCard(
                 Text(
                     text = "PREVIEW ON MANNEQUIN",
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
+                    letterSpacing = 1.sp,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
                 )
             }
         }
@@ -189,10 +197,11 @@ fun ClothingItemThumbnail(item: ClothingItem) {
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = item.category.uppercase(),
-            fontSize = 10.sp,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = NavyDeep,
-            maxLines = 1
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

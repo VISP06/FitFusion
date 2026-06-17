@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -85,7 +86,7 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
             ) {
                 Text(
                     text = "CLOSET",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Black,
                     modifier = Modifier.padding(16.dp),
                     color = NavyDeep
@@ -181,12 +182,14 @@ fun WardrobeItemCard(item: ClothingItem, onDelete: () -> Unit) {
                     text = item.category.uppercase(),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = NavyDeep
+                    color = NavyDeep,
+                    maxLines = 1
                 )
                 Text(
                     text = "${item.color} / ${item.material}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = NavyDeep.copy(alpha = 0.7f)
+                    color = NavyDeep.copy(alpha = 0.7f),
+                    maxLines = 1
                 )
             }
         }
@@ -256,7 +259,6 @@ fun AddItemBottomSheet(
     onRetakeClick: () -> Unit,
     viewModel: WardrobeViewModel
 ) {
-    // STATE HOISTING FIX: state variables for the form
     var selectedCategory by rememberSaveable { mutableStateOf("T-shirt") }
     var color by rememberSaveable { mutableStateOf("") }
     var material by rememberSaveable { mutableStateOf("") }
@@ -322,7 +324,13 @@ fun AddItemBottomSheet(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.Camera, contentDescription = null)
-                            Text("CAMERA", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "CAMERA", 
+                                fontSize = 14.sp, 
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
+                            )
                         }
                     }
                     OutlinedButton(
@@ -336,7 +344,13 @@ fun AddItemBottomSheet(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.Photo, contentDescription = null)
-                            Text("GALLERY", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "GALLERY", 
+                                fontSize = 14.sp, 
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
@@ -353,8 +367,8 @@ fun AddItemBottomSheet(
                 label = { Text("COLOR (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
-                readOnly = true,   // TEXT FIELD FIX
-                enabled = false,    // TEXT FIELD FIX
+                readOnly = true,
+                enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledBorderColor = NavyDeep,
                     disabledLabelColor = NavyDeep,
@@ -368,8 +382,8 @@ fun AddItemBottomSheet(
                 label = { Text("MATERIAL (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
-                readOnly = true,   // TEXT FIELD FIX
-                enabled = false,    // TEXT FIELD FIX
+                readOnly = true,
+                enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledBorderColor = NavyDeep,
                     disabledLabelColor = NavyDeep,
@@ -379,7 +393,7 @@ fun AddItemBottomSheet(
 
             Button(
                 onClick = { 
-                    viewModel.saveItem(selectedCategory, color, material) // SAVE BUTTON FIX
+                    viewModel.saveItem(selectedCategory, color, material)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -391,7 +405,13 @@ fun AddItemBottomSheet(
                     contentColor = Color.White
                 )
             ) {
-                Text("SAVE ITEM", fontWeight = FontWeight.Bold)
+                Text(
+                    text = "SAVE ITEM", 
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

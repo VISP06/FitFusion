@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fitfusion.R
 
 val ShurikenFont = FontFamily(Font(R.font.last_shuriken))
-val MidorimaFont = FontFamily(Font(R.font.midorima))
+val YujiFont = FontFamily(Font(R.font.yujisyuku_regular))
 
 val Typography = Typography(
     displayLarge = TextStyle(
@@ -55,65 +55,65 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = ShurikenFont,
-        fontWeight = FontWeight.Black,
-        fontSize = 26.sp,
-        lineHeight = 32.sp,
+        fontFamily = YujiFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp,
+        lineHeight = 30.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
+        fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = MidorimaFont,
-        fontWeight = FontWeight.Normal,
-        fontSize = 18.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.5.sp
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.25.sp
+        letterSpacing = 0.5.sp
     ),
-    bodySmall = TextStyle(
-        fontFamily = MidorimaFont,
+    bodyMedium = TextStyle(
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = YujiFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
+        fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
+        fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = MidorimaFont,
+        fontFamily = YujiFont,
         fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
+        fontSize = 11.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
