@@ -259,9 +259,26 @@ fun AddItemBottomSheet(
     onRetakeClick: () -> Unit,
     viewModel: WardrobeViewModel
 ) {
+    val aiCategory by viewModel.aiCategory.collectAsState()
+    val aiColor by viewModel.aiColor.collectAsState()
+    val aiMaterial by viewModel.aiMaterial.collectAsState()
+    val isAiLoading by viewModel.isAiLoading.collectAsState()
+    val context = LocalContext.current
+
     var selectedCategory by rememberSaveable { mutableStateOf("T-shirt") }
     var color by rememberSaveable { mutableStateOf("") }
     var material by rememberSaveable { mutableStateOf("") }
+
+    // Sync AI results to local form state
+    LaunchedEffect(aiCategory) {
+        selectedCategory = aiCategory
+    }
+    LaunchedEffect(aiColor) {
+        color = aiColor
+    }
+    LaunchedEffect(aiMaterial) {
+        material = aiMaterial
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -299,6 +316,26 @@ fun AddItemBottomSheet(
                             .border(2.dp, NavyDeep, RectangleShape),
                         contentScale = ContentScale.Crop
                     )
+                    
+                    if (isAiLoading) {
+                        CircularProgressIndicator(color = NavyDeep)
+                    } else {
+                        Button(
+                            onClick = { viewModel.analyzeImageWithAI(context) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .border(2.dp, NavyDeep, RectangleShape),
+                            shape = RectangleShape,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NavyDeep,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("ANALYZE WITH AI", fontWeight = FontWeight.Black)
+                        }
+                    }
+
                     TextButton(onClick = onRetakeClick) {
                         Text(
                             text = "RETAKE / RESELECT",
@@ -368,11 +405,13 @@ fun AddItemBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
                 readOnly = true,
-                enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledBorderColor = NavyDeep,
-                    disabledLabelColor = NavyDeep,
-                    disabledTextColor = NavyDeep
+                    focusedBorderColor = NavyDeep,
+                    unfocusedBorderColor = NavyDeep,
+                    focusedLabelColor = NavyDeep,
+                    cursorColor = NavyDeep,
+                    focusedTextColor = NavyDeep,
+                    unfocusedTextColor = NavyDeep
                 )
             )
 
@@ -383,11 +422,13 @@ fun AddItemBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
                 readOnly = true,
-                enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledBorderColor = NavyDeep,
-                    disabledLabelColor = NavyDeep,
-                    disabledTextColor = NavyDeep
+                    focusedBorderColor = NavyDeep,
+                    unfocusedBorderColor = NavyDeep,
+                    focusedLabelColor = NavyDeep,
+                    cursorColor = NavyDeep,
+                    focusedTextColor = NavyDeep,
+                    unfocusedTextColor = NavyDeep
                 )
             )
 
@@ -449,7 +490,9 @@ fun CategoryDropdown(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = NavyDeep,
                 unfocusedBorderColor = NavyDeep,
-                focusedLabelColor = NavyDeep
+                focusedLabelColor = NavyDeep,
+                focusedTextColor = NavyDeep,
+                unfocusedTextColor = NavyDeep
             )
         )
         ExposedDropdownMenu(

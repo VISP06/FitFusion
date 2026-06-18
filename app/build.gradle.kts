@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -37,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -75,4 +77,7 @@ dependencies {
 
     // Gson for Room TypeConverters
     implementation("com.google.code.gson:gson:2.10.1")
+
+    //Gemini SDK Dependency
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }
