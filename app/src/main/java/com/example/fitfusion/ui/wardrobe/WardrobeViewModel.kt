@@ -86,13 +86,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                 }
 
                 val prompt = """
-                    Analyze this image of a clothing item. 
-                    Return ONLY a raw JSON object with the following keys:
-                    "is_clear": (boolean, set to false if the image is too blurry, too dark, or does not contain clothing),
-                    "category": (string, pick the closest from: T-shirt, Shirt/Blouse, Hoodie/Sweater, Jacket/Coat, Trousers/Jeans, Shorts, Skirt, Dress, Shoes, Accessories),
-                    "color": (string, primary color),
-                    "material": (string, e.g. Cotton, Denim, Wool, Leather).
-                    Do not include any markdown formatting or extra text.
+                    Analyze this image. Identify the SINGLE main piece of clothing in the foreground. Ignore the background entirely. Return a JSON object with keys: 'is_clear' (boolean), 'category' (string), 'color' (string), and 'material' (string). If the image is blurry, too dark, or contains no clothing, set 'is_clear' to false.
                 """.trimIndent()
 
                 val response = model.generateContent(
@@ -102,8 +96,14 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     }
                 )
 
-                val resultText = response.text?.trim() ?: ""
-                val jsonResult = JSONObject(resultText)
+                var sanitizedResponse = response.text?.trim() ?: ""
+                if (sanitizedResponse.startsWith("```json")) {
+                    sanitizedResponse = sanitizedResponse.removePrefix("```json").removeSuffix("```").trim()
+                } else if (sanitizedResponse.startsWith("```")) {
+                    sanitizedResponse = sanitizedResponse.removePrefix("```").removeSuffix("```").trim()
+                }
+
+                val jsonResult = JSONObject(sanitizedResponse)
 
                 if (jsonResult.getBoolean("is_clear")) {
                     aiCategory.value = jsonResult.getString("category")

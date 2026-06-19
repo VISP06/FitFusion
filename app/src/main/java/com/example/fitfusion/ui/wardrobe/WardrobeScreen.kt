@@ -49,12 +49,17 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         viewModel.setPhotoUri(uri)
+        if (uri != null) {
+            viewModel.analyzeImageWithAI(context)
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (!success) {
+        if (success) {
+            viewModel.analyzeImageWithAI(context)
+        } else {
             viewModel.clearPhotoUri()
         }
     }
@@ -269,14 +274,10 @@ fun AddItemBottomSheet(
     var color by rememberSaveable { mutableStateOf("") }
     var material by rememberSaveable { mutableStateOf("") }
 
-    // Sync AI results to local form state
-    LaunchedEffect(aiCategory) {
+    // Sync AI results to local form state as they arrive
+    LaunchedEffect(aiCategory, aiColor, aiMaterial) {
         selectedCategory = aiCategory
-    }
-    LaunchedEffect(aiColor) {
         color = aiColor
-    }
-    LaunchedEffect(aiMaterial) {
         material = aiMaterial
     }
 
@@ -332,7 +333,7 @@ fun AddItemBottomSheet(
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("ANALYZE WITH AI", fontWeight = FontWeight.Black)
+                            Text("RE-ANALYZE WITH AI", fontWeight = FontWeight.Black)
                         }
                     }
 
