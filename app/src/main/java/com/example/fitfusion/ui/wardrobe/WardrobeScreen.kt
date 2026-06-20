@@ -44,28 +44,24 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
 
+    // CAMERA BUG FIX: use rememberSaveable for temporary URI
+    var tempCameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
     // Launchers
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         viewModel.setPhotoUri(uri)
-        if (uri != null) {
-            viewModel.analyzeImageWithAI(context)
-        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) {
-            viewModel.analyzeImageWithAI(context)
-        } else {
+        if (!success) {
             viewModel.clearPhotoUri()
+            tempCameraUri = null
         }
     }
-
-    // CAMERA BUG FIX: use rememberSaveable for temporary URI
-    var tempCameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         GridBackground()
@@ -270,17 +266,6 @@ fun AddItemBottomSheet(
     val isAiLoading by viewModel.isAiLoading.collectAsState()
     val context = LocalContext.current
 
-    var selectedCategory by rememberSaveable { mutableStateOf("T-shirt") }
-    var color by rememberSaveable { mutableStateOf("") }
-    var material by rememberSaveable { mutableStateOf("") }
-
-    // Sync AI results to local form state as they arrive
-    LaunchedEffect(aiCategory, aiColor, aiMaterial) {
-        selectedCategory = aiCategory
-        color = aiColor
-        material = aiMaterial
-    }
-
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -333,7 +318,7 @@ fun AddItemBottomSheet(
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("RE-ANALYZE WITH AI", fontWeight = FontWeight.Black)
+                            Text("ANALYZE WITH AI", fontWeight = FontWeight.Black)
                         }
                     }
 
@@ -395,13 +380,13 @@ fun AddItemBottomSheet(
             }
 
             CategoryDropdown(
-                selectedCategory = selectedCategory,
-                onCategorySelected = { selectedCategory = it }
+                selectedCategory = aiCategory,
+                onCategorySelected = { viewModel.aiCategory.value = it }
             )
 
             OutlinedTextField(
-                value = color,
-                onValueChange = { color = it },
+                value = aiColor,
+                onValueChange = {},
                 label = { Text("COLOR (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
@@ -417,8 +402,8 @@ fun AddItemBottomSheet(
             )
 
             OutlinedTextField(
-                value = material,
-                onValueChange = { material = it },
+                value = aiMaterial,
+                onValueChange = {},
                 label = { Text("MATERIAL (AI AUTO)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
@@ -434,8 +419,8 @@ fun AddItemBottomSheet(
             )
 
             Button(
-                onClick = { 
-                    viewModel.saveItem(selectedCategory, color, material)
+                onClick = {
+                    viewModel.saveItem(aiCategory, aiColor, aiMaterial)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

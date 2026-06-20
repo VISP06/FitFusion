@@ -6,6 +6,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +15,7 @@ import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.entity.ClothingItem
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
 
@@ -66,10 +67,11 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
 
     fun analyzeImageWithAI(context: Context) {
         val uri = currentPhotoUri.value ?: return
-        
+
         viewModelScope.launch {
             isAiLoading.value = true
             try {
+                // 1. Initialize WITHOUT the restrictive generationConfig that causes backend crashes
                 val model = GenerativeModel(
                     modelName = "gemini-1.5-flash",
                     apiKey = BuildConfig.GEMINI_API_KEY
@@ -85,30 +87,53 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     }
                 }
 
+                // Scale down the bitmap to avoid API payload size limits
+                val maxDimension = 800
+                val scale = maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
+                val scaledBitmap = if (scale < 1.0f) {
+                    Bitmap.createScaledBitmap(
+                        bitmap,
+                        (bitmap.width * scale).toInt(),
+                        (bitmap.height * scale).toInt(),
+                        true
+                    )
+                } else {
+                    bitmap
+                }
+
                 val prompt = """
-                    Analyze this image. Identify the SINGLE main piece of clothing in the foreground. Ignore the background entirely. Return a JSON object with keys: 'is_clear' (boolean), 'category' (string), 'color' (string), and 'material' (string). If the image is blurry, too dark, or contains no clothing, set 'is_clear' to false.
+                    Analyze this image. Identify the single main piece of clothing in the foreground. Ignore the background. Return ONLY a JSON object with the keys: 'is_clear' (boolean), 'category' (string), 'color' (string), and 'material' (string). If the image is blurry or dark, set 'is_clear' to false.
                 """.trimIndent()
 
                 val response = model.generateContent(
                     content {
-                        image(bitmap)
+                        image(scaledBitmap)
                         text(prompt)
                     }
                 )
 
-                var sanitizedResponse = response.text?.trim() ?: ""
-                if (sanitizedResponse.startsWith("```json")) {
-                    sanitizedResponse = sanitizedResponse.removePrefix("```json").removeSuffix("```").trim()
-                } else if (sanitizedResponse.startsWith("```")) {
-                    sanitizedResponse = sanitizedResponse.removePrefix("```").removeSuffix("```").trim()
+                val rawText = response.text ?: throw Exception("Empty response from AI")
+                Log.d("FitFusion_AI", "Raw response: $rawText")
+
+                // 2. The Silver Bullet JSON Extractor
+                // This physically slices the JSON out of the string, ignoring any markdown backticks or conversational filler.
+                val startIndex = rawText.indexOf('{')
+                val endIndex = rawText.lastIndexOf('}')
+
+                if (startIndex == -1 || endIndex == -1) {
+                    throw Exception("No JSON structure found in text.")
                 }
 
-                val jsonResult = JSONObject(sanitizedResponse)
+                val cleanJson = rawText.substring(startIndex, endIndex + 1)
+                val jsonObject = org.json.JSONObject(cleanJson)
 
-                if (jsonResult.getBoolean("is_clear")) {
-                    aiCategory.value = jsonResult.getString("category")
-                    aiColor.value = jsonResult.getString("color")
-                    aiMaterial.value = jsonResult.getString("material")
+                // 3. Safe parsing using .optBoolean and .optString to prevent missing-key crashes
+                val isClear = jsonObject.optBoolean("is_clear", true)
+
+                if (isClear) {
+                    aiCategory.value = jsonObject.optString("category", "T-shirt")
+                    aiColor.value = jsonObject.optString("color", "Unknown Color")
+                    aiMaterial.value = jsonObject.optString("material", "Unknown Material")
                 } else {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "IMAGE TOO BLURRY OR NO CLOTHING DETECTED", Toast.LENGTH_SHORT).show()
@@ -118,6 +143,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "AI ANALYSIS FAILED: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
+                Log.e("FitFusion_AI", "Error parsing AI response", e)
             } finally {
                 isAiLoading.value = false
             }
