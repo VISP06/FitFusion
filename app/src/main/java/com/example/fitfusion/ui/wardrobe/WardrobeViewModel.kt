@@ -71,12 +71,13 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
         viewModelScope.launch {
             isAiLoading.value = true
             try {
-                // 1. Initialize WITHOUT the restrictive generationConfig that causes backend crashes
+                // 1. Use the working 2.5 model
                 val model = GenerativeModel(
-                    modelName = "gemini-1.5-flash",
+                    modelName = "gemini-2.5-flash",
                     apiKey = BuildConfig.GEMINI_API_KEY
                 )
 
+                // 2. Decode the image
                 val bitmap = withContext(Dispatchers.IO) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         val source = ImageDecoder.createSource(context.contentResolver, uri)
@@ -87,7 +88,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     }
                 }
 
-                // Scale down the bitmap to avoid API payload size limits
+                // 3. Shrink the massive camera photo so Google doesn't reject the payload
                 val maxDimension = 800
                 val scale = maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
                 val scaledBitmap = if (scale < 1.0f) {
@@ -101,6 +102,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     bitmap
                 }
 
+                // 4. Ask for the JSON
                 val prompt = """
                     Analyze this image. Identify the single main piece of clothing in the foreground. Ignore the background. Return ONLY a JSON object with the keys: 'is_clear' (boolean), 'category' (string), 'color' (string), and 'material' (string). If the image is blurry or dark, set 'is_clear' to false.
                 """.trimIndent()
@@ -113,10 +115,8 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                 )
 
                 val rawText = response.text ?: throw Exception("Empty response from AI")
-                Log.d("FitFusion_AI", "Raw response: $rawText")
 
-                // 2. The Silver Bullet JSON Extractor
-                // This physically slices the JSON out of the string, ignoring any markdown backticks or conversational filler.
+                // 5. Slice out the JSON manually to bypass markdown formatting bugs
                 val startIndex = rawText.indexOf('{')
                 val endIndex = rawText.lastIndexOf('}')
 
@@ -127,7 +127,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                 val cleanJson = rawText.substring(startIndex, endIndex + 1)
                 val jsonObject = org.json.JSONObject(cleanJson)
 
-                // 3. Safe parsing using .optBoolean and .optString to prevent missing-key crashes
+                // 6. Safely update the text fields on the screen
                 val isClear = jsonObject.optBoolean("is_clear", true)
 
                 if (isClear) {
@@ -136,12 +136,12 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     aiMaterial.value = jsonObject.optString("material", "Unknown Material")
                 } else {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "IMAGE TOO BLURRY OR NO CLOTHING DETECTED", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "IMAGE TOO BLURRY", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "AI ANALYSIS FAILED: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "ANALYSIS FAILED: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
                 Log.e("FitFusion_AI", "Error parsing AI response", e)
             } finally {
@@ -149,7 +149,6 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
             }
         }
     }
-
     fun saveItem(category: String, color: String, material: String) {
         val uri = currentPhotoUri.value
         if (uri != null) {
