@@ -149,25 +149,64 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
             }
         }
     }
-    fun saveItem(category: String, color: String, material: String) {
+    fun saveItem(context: Context, category: String, color: String, material: String) {
         val uri = currentPhotoUri.value
         if (uri != null) {
             viewModelScope.launch {
-                val newItem = ClothingItem(
-                    imageUri = uri.toString(),
-                    category = category,
-                    color = color,
-                    material = material
-                )
-                dao.insertClothingItem(newItem)
-                closeSheet()
+                val internalPath = withContext(Dispatchers.IO) {
+                    saveImageToInternalStorage(context, uri)
+                }
+                if (internalPath != null) {
+                    val newItem = ClothingItem(
+                        imageUri = internalPath,
+                        category = category,
+                        color = color,
+                        material = material
+                    )
+                    dao.insertClothingItem(newItem)
+                    closeSheet()
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "ERROR SAVING IMAGE", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
+        }
+    }
+
+    private fun saveImageToInternalStorage(context: Context, uri: Uri): String? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val fileName = "wardrobe_${System.currentTimeMillis()}.jpg"
+            val file = java.io.File(context.filesDir, fileName)
+            val outputStream = java.io.FileOutputStream(file)
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            file.absolutePath
+        } catch (e: Exception) {
+            Log.e("FitFusion_SaveImage", "Failed to save image to internal storage", e)
+            null
         }
     }
 
     fun deleteItem(item: ClothingItem) {
         viewModelScope.launch {
             dao.deleteClothingItem(item)
+            item.imageUri?.let { path ->
+                withContext(Dispatchers.IO) {
+                    try {
+                        val file = java.io.File(path)
+                        if (file.exists()) {
+                            file.delete()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("FitFusion_DeleteImage", "Failed to delete image file", e)
+                    }
+                }
+            }
         }
     }
 }

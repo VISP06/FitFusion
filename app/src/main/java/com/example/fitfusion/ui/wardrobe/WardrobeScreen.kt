@@ -66,47 +66,43 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
     Box(modifier = Modifier.fillMaxSize()) {
         GridBackground()
 
-        Scaffold(
-            containerColor = Color.Transparent,
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { viewModel.openSheet() },
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
-                    shape = RectangleShape,
-                    modifier = Modifier.border(2.dp, NavyDeep, RectangleShape)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Item")
-                }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-            ) {
-                Text(
-                    text = "CLOSET",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(16.dp),
-                    color = NavyDeep
-                )
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                text = "CLOSET",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(16.dp),
+                color = NavyDeep
+            )
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(items) { item ->
-                        WardrobeItemCard(
-                            item = item,
-                            onDelete = { viewModel.deleteItem(item) }
-                        )
-                    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(bottom = 88.dp, start = 12.dp, end = 12.dp, top = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(items) { item ->
+                    WardrobeItemCard(
+                        item = item,
+                        onDelete = { viewModel.deleteItem(item) }
+                    )
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = { viewModel.openSheet() },
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary,
+            shape = RectangleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+                .border(2.dp, NavyDeep, RectangleShape)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Item")
         }
 
         if (isSheetOpen) {
@@ -276,8 +272,7 @@ fun AddItemBottomSheet(
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
-                .navigationBarsPadding(),
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -420,7 +415,7 @@ fun AddItemBottomSheet(
 
             Button(
                 onClick = {
-                    viewModel.saveItem(aiCategory, aiColor, aiMaterial)
+                    viewModel.saveItem(context, aiCategory, aiColor, aiMaterial)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

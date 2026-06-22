@@ -1,5 +1,6 @@
 package com.example.fitfusion.ui.outfits
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -36,15 +37,12 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(16.dp),
+            contentPadding = PaddingValues(bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             items(outfits) { outfit ->
@@ -67,6 +65,13 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
                 )
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
     }
 }
 
@@ -107,7 +112,7 @@ fun OutfitCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = outfit.name,
+                        text = outfit.name.uppercase(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         color = BeigeAccent,
@@ -131,6 +136,55 @@ fun OutfitCard(
             ) {
                 items(outfit.items) { item ->
                     ClothingItemThumbnail(item)
+                }
+            }
+
+            // Stylist Notes Block
+            if (outfit.reasoning.isNotEmpty()) {
+                var showNotes by remember { mutableStateOf(false) }
+
+                OutlinedButton(
+                    onClick = { showNotes = !showNotes },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp)
+                        .height(48.dp)
+                        .border(2.dp, NavyDeep, RectangleShape),
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = NavyDeep
+                    )
+                ) {
+                    Text(
+                        text = if (showNotes) "- HIDE STYLIST NOTES" else "+ WHY THIS WORKS",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 14.sp,
+                        maxLines = 1
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = showNotes,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(width = 1.dp, color = NavyDeep.copy(alpha = 0.5f), shape = RectangleShape)
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "AI STYLIST: ${outfit.reasoning}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = NavyDeep
+                        )
+                    }
                 }
             }
 

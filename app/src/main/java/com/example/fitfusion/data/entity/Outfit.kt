@@ -8,5 +8,6 @@ data class Outfit(
     @PrimaryKey(autoGenerate = true) 
     val id: Int = 0,
     val name: String,
-    val items: List<ClothingItem>
+    val items: List<ClothingItem>,
+    val reasoning: String = ""
 )
