@@ -71,7 +71,8 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
             categoryLower.contains("accessory") || 
             categoryLower.contains("watch") || 
             categoryLower.contains("chain") || 
-            categoryLower.contains("hat") -> MacroCategory.ACCESSORIES
+            categoryLower.contains("hat") ||
+            categoryLower.contains("bag") -> MacroCategory.ACCESSORIES
             
             else -> MacroCategory.UNKNOWN
         }
@@ -128,9 +129,11 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
                        - "name": A stylish name for the outfit vibe (e.g., "Urban Explorer", "Minimalist Chic", "Retro Classic").
                        - "top": The exact ID (integer) of the selected top used in this outfit from the provided list.
                        - "bottom": The exact ID (integer) of the selected bottom used in this outfit from the provided list.
-                       - "footwear": If a footwear item (from the provided list) is selected and used in this outfit, return its ID (integer). If no footwear was selected or if you recommend a better fit, return a recommended shoe choice as a descriptive string (e.g., "White leather sneakers").
-                       - "accessories": If an accessory item (from the provided list) is selected and used in this outfit, return its ID (integer). If none is used or if you want to recommend a specific accessory, return a string describing the accessory, or null if no accessory is needed.
-                       - "reasoning": A comprehensive, highly detailed paragraph explaining the specific fashion trend matching, color theory compatibility, and why these specific items complement each other perfectly.
+                       - "footwear": The exact ID (integer) of the selected footwear used in this outfit from the provided list, or null if none is used.
+                       - "accessories": The exact ID (integer) of the selected accessory used in this outfit from the provided list, or null if none is used.
+                       - "reasoning": For the 'reasoning' field, you MUST write exactly 1 or 2 short, concise sentences explaining why the outfit works. Refer to items natively by their color and category (e.g., 'the black t-shirt pairs well with the beige pants'). You are strictly FORBIDDEN from using or displaying the item IDs in the reasoning text.
+                    
+                    You must build outfits using ONLY the items provided in the selected items list. For the 'top', 'bottom', 'footwear', and 'accessories' fields in your JSON, you MUST return the exact integer ID of the item. You are strictly FORBIDDEN from recommending items or inventing fake IDs. If no footwear or accessory from the list fits the outfit, or if the user did not provide any, you MUST return `null` for that key.
                     
                     Here are the user's selected clothing items:
                     $descriptionString
@@ -175,16 +178,21 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
                         if (footwearVal is Number) {
                             selectedItems.find { it.id == footwearVal.toInt() }?.let { itemsInOutfit.add(it) }
                         } else if (footwearVal is String && footwearVal.isNotEmpty()) {
-                            // Recommended footwear
-                            itemsInOutfit.add(
-                                ClothingItem(
-                                    id = -1,
-                                    imageUri = null,
-                                    category = "Recommended Footwear",
-                                    color = footwearVal,
-                                    material = "N/A"
+                            val parsedId = footwearVal.toIntOrNull()
+                            if (parsedId != null) {
+                                selectedItems.find { it.id == parsedId }?.let { itemsInOutfit.add(it) }
+                            } else {
+                                // Recommended footwear
+                                itemsInOutfit.add(
+                                    ClothingItem(
+                                        id = -1,
+                                        imageUri = null,
+                                        category = "Recommended Footwear",
+                                        color = footwearVal,
+                                        material = "N/A"
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
 
@@ -194,16 +202,21 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
                         if (accessoriesVal is Number) {
                             selectedItems.find { it.id == accessoriesVal.toInt() }?.let { itemsInOutfit.add(it) }
                         } else if (accessoriesVal is String && accessoriesVal.isNotEmpty()) {
-                            // Recommended accessory
-                            itemsInOutfit.add(
-                                ClothingItem(
-                                    id = -2,
-                                    imageUri = null,
-                                    category = "Recommended Accessory",
-                                    color = accessoriesVal,
-                                    material = "N/A"
+                            val parsedId = accessoriesVal.toIntOrNull()
+                            if (parsedId != null) {
+                                selectedItems.find { it.id == parsedId }?.let { itemsInOutfit.add(it) }
+                            } else {
+                                // Recommended accessory
+                                itemsInOutfit.add(
+                                    ClothingItem(
+                                        id = -2,
+                                        imageUri = null,
+                                        category = "Recommended Accessory",
+                                        color = accessoriesVal,
+                                        material = "N/A"
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
 

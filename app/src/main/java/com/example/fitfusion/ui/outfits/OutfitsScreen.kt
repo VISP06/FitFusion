@@ -8,7 +8,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Style
+import com.example.fitfusion.ui.wardrobe.GridBackground
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,31 +41,121 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
     val scope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentPadding = PaddingValues(bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            items(outfits) { outfit ->
-                OutfitCard(
-                    outfit = outfit,
-                    onDelete = {
-                        viewModel.deleteOutfit(outfit)
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Outfit deleted")
-                        }
-                    },
-                    onPreviewClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Coming Soon: Mannequin Preview for ${outfit.name}",
-                                duration = SnackbarDuration.Short
+        GridBackground()
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = "OUTFITS",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(16.dp),
+                color = NavyDeep
+            )
+
+            if (outfits.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val lineColor = NavyDeep.copy(alpha = 0.05f)
+                        val strokeWidth = 1.dp.toPx()
+                        
+                        // Diagonal flowing blueprint lines
+                        for (i in -size.height.toInt()..size.width.toInt() step 40.dp.toPx().toInt()) {
+                            drawLine(
+                                color = lineColor,
+                                start = Offset(i.toFloat(), 0f),
+                                end = Offset(i.toFloat() + size.height, size.height),
+                                strokeWidth = strokeWidth
                             )
                         }
+
+                        // Abstract geometric shape (circle + crosshairs)
+                        drawCircle(
+                            color = lineColor,
+                            radius = size.minDimension / 3f,
+                            center = center,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
+                        )
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(center.x - size.minDimension / 2f, center.y),
+                            end = Offset(center.x + size.minDimension / 2f, center.y),
+                            strokeWidth = strokeWidth
+                        )
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(center.x, center.y - size.minDimension / 2f),
+                            end = Offset(center.x, center.y + size.minDimension / 2f),
+                            strokeWidth = strokeWidth
+                        )
                     }
-                )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Style,
+                            contentDescription = null,
+                            tint = NavyDeep,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .border(2.dp, NavyDeep, RectangleShape)
+                                .padding(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "THE ARCHIVE IS EMPTY.",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NavyDeep,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "DESIGN YOUR FIRST LOOK IN THE STUDIO TO SAVE IT HERE.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NavyDeep.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(bottom = 88.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    items(outfits) { outfit ->
+                        OutfitCard(
+                            outfit = outfit,
+                            onDelete = {
+                                viewModel.deleteOutfit(outfit)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Outfit deleted")
+                                }
+                            },
+                            onPreviewClick = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Coming Soon: Mannequin Preview for ${outfit.name}",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
 

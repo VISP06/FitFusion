@@ -104,7 +104,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
 
                 // 4. Ask for the JSON
                 val prompt = """
-                    Analyze this image. Identify the single main piece of clothing in the foreground. Ignore the background. Return ONLY a JSON object with the keys: 'is_clear' (boolean), 'category' (string), 'color' (string), and 'material' (string). If the image is blurry or dark, set 'is_clear' to false.
+                    Analyze this image. Identify the single main piece of clothing or accessory. You MUST classify the item into ONLY one of these exact categories: [T-shirt, Shirt, Hoodie, Jacket, Pants, Jeans, Shorts, Sneakers, Shoes, Boots, Watch, Hat, Chain, Bag]. Do NOT invent new categories. Return a JSON object with 'is_clear', 'category', 'color', 'material'.
                 """.trimIndent()
 
                 val response = model.generateContent(

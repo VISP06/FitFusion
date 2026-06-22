@@ -381,11 +381,10 @@ fun AddItemBottomSheet(
 
             OutlinedTextField(
                 value = aiColor,
-                onValueChange = {},
-                label = { Text("COLOR (AI AUTO)") },
+                onValueChange = { viewModel.aiColor.value = it },
+                label = { Text("COLOR") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
-                readOnly = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = NavyDeep,
                     unfocusedBorderColor = NavyDeep,
@@ -398,11 +397,10 @@ fun AddItemBottomSheet(
 
             OutlinedTextField(
                 value = aiMaterial,
-                onValueChange = {},
-                label = { Text("MATERIAL (AI AUTO)") },
+                onValueChange = { viewModel.aiMaterial.value = it },
+                label = { Text("MATERIAL") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
-                readOnly = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = NavyDeep,
                     unfocusedBorderColor = NavyDeep,
@@ -448,8 +446,8 @@ fun CategoryDropdown(
     onCategorySelected: (String) -> Unit
 ) {
     val categories = listOf(
-        "T-shirt", "Shirt/Blouse", "Hoodie/Sweater", "Jacket/Coat",
-        "Trousers/Jeans", "Shorts", "Skirt", "Dress", "Shoes", "Accessories"
+        "T-shirt", "Shirt", "Hoodie", "Jacket", "Pants", "Jeans", "Shorts",
+        "Sneakers", "Shoes", "Boots", "Watch", "Hat", "Chain", "Bag"
     )
     var expanded by remember { mutableStateOf(false) }
 

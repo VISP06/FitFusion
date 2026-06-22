@@ -81,43 +81,51 @@ fun StudioScreen(viewModel: StudioViewModel) {
             }
 
             // Tops section
-            item {
-                CategorySection(
-                    title = "TOPS (Shirts, T-shirts, Hoodies)",
-                    items = tops,
-                    selectedIds = selectedClothes,
-                    onItemClick = { viewModel.toggleSelection(it) }
-                )
+            if (tops.isNotEmpty()) {
+                item {
+                    CategorySection(
+                        title = "TOPS",
+                        items = tops,
+                        selectedIds = selectedClothes,
+                        onItemClick = { viewModel.toggleSelection(it) }
+                    )
+                }
             }
 
             // Bottoms section
-            item {
-                CategorySection(
-                    title = "BOTTOMS (Pants, Shorts, Jeans)",
-                    items = bottoms,
-                    selectedIds = selectedClothes,
-                    onItemClick = { viewModel.toggleSelection(it) }
-                )
+            if (bottoms.isNotEmpty()) {
+                item {
+                    CategorySection(
+                        title = "BOTTOMS",
+                        items = bottoms,
+                        selectedIds = selectedClothes,
+                        onItemClick = { viewModel.toggleSelection(it) }
+                    )
+                }
             }
 
             // Footwear section
-            item {
-                CategorySection(
-                    title = "FOOTWEAR (Shoes, Sneakers, Boots - Optional)",
-                    items = footwear,
-                    selectedIds = selectedClothes,
-                    onItemClick = { viewModel.toggleSelection(it) }
-                )
+            if (footwear.isNotEmpty()) {
+                item {
+                    CategorySection(
+                        title = "FOOTWEAR",
+                        items = footwear,
+                        selectedIds = selectedClothes,
+                        onItemClick = { viewModel.toggleSelection(it) }
+                    )
+                }
             }
 
             // Accessories section
-            item {
-                CategorySection(
-                    title = "ACCESSORIES (Watches, Chains, Hats - Optional)",
-                    items = accessories,
-                    selectedIds = selectedClothes,
-                    onItemClick = { viewModel.toggleSelection(it) }
-                )
+            if (accessories.isNotEmpty()) {
+                item {
+                    CategorySection(
+                        title = "ACCESSORIES",
+                        items = accessories,
+                        selectedIds = selectedClothes,
+                        onItemClick = { viewModel.toggleSelection(it) }
+                    )
+                }
             }
 
             // Action Button
@@ -253,7 +261,7 @@ fun CategorySection(
                             .background(MaterialTheme.colorScheme.surface)
                             .border(
                                 width = if (isSelected) 4.dp else 2.dp,
-                                color = if (isSelected) CoralMuted else NavyDeep,
+                                color = NavyDeep,
                                 shape = RectangleShape
                             )
                             .clickable { onItemClick(item.id) },
@@ -275,26 +283,6 @@ fun CategorySection(
                                 tint = NavyDeep.copy(alpha = 0.3f)
                             )
                         }
-                        
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth()
-                                .background(Color.White.copy(alpha = 0.85f))
-                                .padding(vertical = 3.dp)
-                        ) {
-                            Text(
-                                text = "${item.color.uppercase()} ${item.material.uppercase()}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = NavyDeep,
-                                fontSize = 8.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp)
-                            )
-                        }
                     }
                 }
             }
@@ -309,7 +297,7 @@ fun OutfitResultCard(
     onSavedMessage: () -> Unit
 ) {
     var isSaved by remember { mutableStateOf(false) }
-    var showNotes by remember { mutableStateOf(true) }
+    var isExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -336,49 +324,60 @@ fun OutfitResultCard(
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(outfit.items) { item ->
-                            Box(
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .border(1.dp, NavyDeep, RectangleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (item.imageUri != null) {
-                                    AsyncImage(
-                                        model = item.imageUri,
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                } else {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center,
-                                        modifier = Modifier.padding(2.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Star,
+                            val isAccessory = viewModel.getMacroCategory(item) == MacroCategory.ACCESSORIES || item.id == -2 || item.category.lowercase().contains("accessory")
+                            val isAccessoryEmpty = isAccessory && (
+                                item.color.isBlank() || 
+                                item.color.lowercase() == "null" || 
+                                item.color.lowercase() == "none" || 
+                                item.color.lowercase() == "n/a" || 
+                                item.color.lowercase().contains("no accessory")
+                            )
+
+                            if (!isAccessory || !isAccessoryEmpty) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .border(1.dp, NavyDeep, RectangleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (item.imageUri != null) {
+                                        AsyncImage(
+                                            model = item.imageUri,
                                             contentDescription = null,
-                                            modifier = Modifier.size(14.dp),
-                                            tint = NavyDeep
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
                                         )
-                                        Text(
-                                            text = item.category.replace("Recommended ", ""),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 6.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = NavyDeep,
-                                            maxLines = 1,
-                                            textAlign = TextAlign.Center
-                                        )
-                                        Text(
-                                            text = item.color,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 6.sp,
-                                            color = NavyDeep,
-                                            maxLines = 1,
-                                            textAlign = TextAlign.Center
-                                        )
+                                    } else {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier.padding(2.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Star,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(14.dp),
+                                                tint = NavyDeep
+                                            )
+                                            Text(
+                                                text = item.category.replace("Recommended ", ""),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 6.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = NavyDeep,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Text(
+                                                text = item.color,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 6.sp,
+                                                color = NavyDeep,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -405,7 +404,7 @@ fun OutfitResultCard(
             }
 
             OutlinedButton(
-                onClick = { showNotes = !showNotes },
+                onClick = { isExpanded = !isExpanded },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -417,7 +416,7 @@ fun OutfitResultCard(
                 )
             ) {
                 Text(
-                    text = if (showNotes) "- HIDE STYLIST NOTES" else "+ WHY THIS WORKS",
+                    text = if (isExpanded) "- HIDE STYLIST NOTES" else "+ WHY THIS WORKS",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
                     fontSize = 14.sp,
@@ -425,7 +424,7 @@ fun OutfitResultCard(
                 )
             }
 
-            AnimatedVisibility(visible = showNotes) {
+            AnimatedVisibility(visible = isExpanded) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
