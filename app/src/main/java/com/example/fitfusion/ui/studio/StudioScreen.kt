@@ -30,6 +30,7 @@ import com.example.fitfusion.data.entity.ClothingItem
 import com.example.fitfusion.data.entity.Outfit
 import com.example.fitfusion.ui.theme.CoralMuted
 import com.example.fitfusion.ui.theme.NavyDeep
+import com.example.fitfusion.ui.theme.Rose
 import com.example.fitfusion.ui.wardrobe.GridBackground
 import kotlinx.coroutines.launch
 
@@ -261,7 +262,7 @@ fun CategorySection(
                             .background(MaterialTheme.colorScheme.surface)
                             .border(
                                 width = if (isSelected) 4.dp else 2.dp,
-                                color = NavyDeep,
+                                color = if(isSelected) Rose else NavyDeep,
                                 shape = RectangleShape
                             )
                             .clickable { onItemClick(item.id) },
