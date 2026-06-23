@@ -63,7 +63,7 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val lineColor = NavyDeep.copy(alpha = 0.05f)
                         val strokeWidth = 1.dp.toPx()
-                        
+
                         // Diagonal flowing blueprint lines
                         for (i in -size.height.toInt()..size.width.toInt() step 40.dp.toPx().toInt()) {
                             drawLine(
@@ -80,18 +80,6 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
                             radius = size.minDimension / 3f,
                             center = center,
                             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
-                        )
-                        drawLine(
-                            color = lineColor,
-                            start = Offset(center.x - size.minDimension / 2f, center.y),
-                            end = Offset(center.x + size.minDimension / 2f, center.y),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = lineColor,
-                            start = Offset(center.x, center.y - size.minDimension / 2f),
-                            end = Offset(center.x, center.y + size.minDimension / 2f),
-                            strokeWidth = strokeWidth
                         )
                     }
 
