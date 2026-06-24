@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -77,17 +78,97 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
                 color = NavyDeep
             )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(bottom = 88.dp, start = 12.dp, end = 12.dp, top = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(items) { item ->
-                    WardrobeItemCard(
-                        item = item,
-                        onDelete = { viewModel.deleteItem(item) }
-                    )
+            if (items.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val lineColor = NavyDeep.copy(alpha = 0.05f)
+                        val strokeWidth = 1.dp.toPx()
+
+                        // 1. Inner Circle
+                        val radius = size.minDimension / 3.5f
+                        drawCircle(
+                            color = lineColor,
+                            radius = radius,
+                            center = center,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                        )
+
+                        // 2. Outer Blueprint Ring
+                        drawCircle(
+                            color = lineColor,
+                            radius = radius + 24.dp.toPx(),
+                            center = center,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                        )
+
+                        // 3. Architectural Crosshairs
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(0f, center.y),
+                            end = Offset(size.width, center.y),
+                            strokeWidth = strokeWidth
+                        )
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(center.x, 0f),
+                            end = Offset(center.x, size.height),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Checkroom,
+                            contentDescription = null,
+                            tint = NavyDeep,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .border(2.dp, NavyDeep, RectangleShape)
+                                .padding(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "NO INVENTORY LOGGED.",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NavyDeep,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "TAP THE + BUTTON TO DIGITIZE YOUR WARDROBE.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NavyDeep.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 88.dp, start = 12.dp, end = 12.dp, top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(items) { item ->
+                        WardrobeItemCard(
+                            item = item,
+                            onDelete = { viewModel.deleteItem(item) }
+                        )
+                    }
                 }
             }
         }

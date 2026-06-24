@@ -64,22 +64,29 @@ fun OutfitsScreen(viewModel: OutfitsViewModel) {
                         val lineColor = NavyDeep.copy(alpha = 0.05f)
                         val strokeWidth = 1.dp.toPx()
 
-                        // Diagonal flowing blueprint lines
-                        for (i in -size.height.toInt()..size.width.toInt() step 40.dp.toPx().toInt()) {
-                            drawLine(
-                                color = lineColor,
-                                start = Offset(i.toFloat(), 0f),
-                                end = Offset(i.toFloat() + size.height, size.height),
-                                strokeWidth = strokeWidth
-                            )
-                        }
-
-                        // Abstract geometric shape (circle + crosshairs)
+                        // 1. Inner Circle
+                        val radius = size.minDimension / 3.5f
                         drawCircle(
                             color = lineColor,
-                            radius = size.minDimension / 3f,
+                            radius = radius,
                             center = center,
-                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                        )
+
+                        // 2. Outer Blueprint Ring
+                        drawCircle(
+                            color = lineColor,
+                            radius = radius + 24.dp.toPx(),
+                            center = center,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                        )
+
+                        // 3. Architectural Crosshairs
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(0f, center.y),
+                            end = Offset(size.width, center.y),
+                            strokeWidth = strokeWidth
                         )
                     }
 
