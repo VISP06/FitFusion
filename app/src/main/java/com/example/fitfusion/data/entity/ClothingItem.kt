@@ -21,4 +21,4 @@ data class ClothingItem(
     is lightweight, relational database and it only understands primitive data types
     It does not know what a URI object is, while it could be stored as raw binary data,
     doing so would drastically bloat our db and therefore we store the address as a text
- */
+*/
