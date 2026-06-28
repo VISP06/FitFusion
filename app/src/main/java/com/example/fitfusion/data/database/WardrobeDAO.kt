@@ -36,7 +36,7 @@ interface WardrobeDao {
     DAO (Data access object) which contains a set of methods that will interact with the actual database.
     The implementation of these methods is done by the database/room itself, we only specify the query to be performed (like for getAllClothingItems)
 
-    Hence that is why for certain functions like insertClothingItem we just use the @INSERT annotation
+    Hence that is why for certain functions like insertClothingItem we just use the @Insert annotation
     which automatically tells room to just insert the clothes into the database but for more
     custom/complex operations we use the @Query annotation and specify our own operation/query to perform.
 
