@@ -1,13 +1,13 @@
 package com.example.fitfusion.ui.wardrobe
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitfusion.BuildConfig
@@ -15,7 +15,6 @@ import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.entity.ClothingItem
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
-import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,7 +70,6 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
         viewModelScope.launch {
             isAiLoading.value = true
             try {
-                // 1. Use the working 2.5 model
                 val model = GenerativeModel(
                     modelName = "gemini-2.5-flash",
                     apiKey = BuildConfig.GEMINI_API_KEY
@@ -92,12 +90,7 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                 val maxDimension = 800
                 val scale = maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
                 val scaledBitmap = if (scale < 1.0f) {
-                    Bitmap.createScaledBitmap(
-                        bitmap,
-                        (bitmap.width * scale).toInt(),
-                        (bitmap.height * scale).toInt(),
-                        true
-                    )
+                    bitmap.scale((bitmap.width * scale).toInt(), (bitmap.height * scale).toInt())
                 } else {
                     bitmap
                 }
