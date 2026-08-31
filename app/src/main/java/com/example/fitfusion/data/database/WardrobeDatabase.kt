@@ -53,5 +53,5 @@ abstract class WardrobeDatabase : RoomDatabase() {
      it was created, preventing memory cache issues
 
      synchronized(this): If two background thread try to create the database instance at the exact same time,
-     this keyword ensures that only thread gets to make the instance while the rest make use of newly created (existing) instance
+     this keyword ensures that there is only thread that gets to make the instance while the rest make use of newly created (existing) instance
 */
