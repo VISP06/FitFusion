@@ -1,11 +1,18 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
 }
-
+val localProperties = gradleLocalProperties(
+    rootDir,
+    providers = TODO()
+)
+val SUPABASE_URL = localProperties.getProperty("SUPABASE_URL", "")
 android {
     namespace = "com.example.fitfusion"
     compileSdk = 36
@@ -84,6 +91,7 @@ dependencies {
     //Supabase related dependencies
     implementation(platform("io.github.jan-tennert.supabase:bom:3.5.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.4.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
