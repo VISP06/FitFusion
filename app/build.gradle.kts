@@ -1,4 +1,5 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,13 +7,18 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+
+    // Make sure this version matches your actual Kotlin version (e.g., "2.0.0" or omit the version string entirely if it crashes)
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
 }
-val localProperties = gradleLocalProperties(
-    rootDir,
-    providers = TODO()
-)
-val SUPABASE_URL = localProperties.getProperty("SUPABASE_URL", "")
+
+// 1. Safely read the local.properties file
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.example.fitfusion"
     compileSdk = 36
@@ -23,6 +29,10 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        // 2. Inject the properties into the generated BuildConfig class
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,8 +50,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
     buildFeatures {
         compose = true
@@ -89,9 +101,10 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     //Supabase related dependencies
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.5.0"))
+    // Supabase related dependencies
+    implementation(platform("io.github.jan-tennert.supabase:bom:2.5.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.ktor:ktor-client-android:3.4.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("io.ktor:ktor-client-android:2.3.12")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
 }
