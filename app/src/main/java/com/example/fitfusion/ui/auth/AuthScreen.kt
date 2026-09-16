@@ -65,6 +65,10 @@ fun AuthScreen(
             color = TealPrimary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+        Text(
+            text = "Your digital wardrobe & daily personal style companion",
+            style = Typography.bodyMedium
+        )
 
         Column(
             modifier = Modifier
