@@ -90,54 +90,58 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            Surface(
-                modifier = Modifier.bottomBorder(2.dp, NavyDeep)
-            ) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = "FITFUSION",
-                            style = MaterialTheme.typography.headlineLarge,
-                            letterSpacing = 4.sp,
-                            color = BeigeAccent
+            if (currentDestination?.route != Screen.Auth.route) {
+                Surface(
+                    modifier = Modifier.bottomBorder(2.dp, NavyDeep)
+                ) {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text = "FITFUSION",
+                                style = MaterialTheme.typography.headlineLarge,
+                                letterSpacing = 4.sp,
+                                color = BeigeAccent
+                            )
+                        },
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = NavyDeep
                         )
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = NavyDeep
                     )
-                )
+                }
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.border(
-                    width = 2.dp,
-                    color = NavyDeep
-                )
-            ) {
-                screens.forEach { screen ->
-                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                    
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.label) },
-                        label = { Text(screen.label, fontWeight = FontWeight.Bold) },
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = NavyDeep,
-                            unselectedIconColor = NavyDeep.copy(alpha = 0.5f),
-                            indicatorColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
-                        )
+            if (currentDestination?.route != Screen.Auth.route) {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.border(
+                        width = 2.dp,
+                        color = NavyDeep
                     )
+                ) {
+                    screens.forEach { screen ->
+                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                        
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon, contentDescription = screen.label) },
+                            label = { Text(screen.label, fontWeight = FontWeight.Bold) },
+                            selected = selected,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = NavyDeep,
+                                unselectedIconColor = NavyDeep.copy(alpha = 0.5f),
+                                indicatorColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
                 }
             }
         }

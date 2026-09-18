@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +48,8 @@ import com.example.fitfusion.ui.theme.Typography
 fun AuthScreen(
     modifier: Modifier = Modifier
 ) {
+    var isLoginMode by remember { mutableStateOf(true) }
+    var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -83,26 +87,46 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Welcome back",
+                text = if (isLoginMode) "Welcome back" else "Create Account",
                 style = Typography.titleMedium
             )
 
             Text(
-                text = "Sign in to organize your fits",
+                text = if (isLoginMode) "Sign in to organize your fits" else "Sign up to start organizing your fits",
                 style = Typography.bodySmall,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            if (!isLoginMode) {
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = {
+                        Text("Username")
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Username",
+                            tint = NavyDeep
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
+
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = email,
+                onValueChange = { email = it },
                 label = {
-                    Text("Username")
+                    Text("Email")
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = "Username",
+                        contentDescription = "Email",
                         tint = NavyDeep
                     )
                 },
@@ -178,7 +202,7 @@ fun AuthScreen(
 
             Button(
                 onClick = {
-                    // TODO: Add login logic
+                    // TODO: Add auth logic
                 },
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(
@@ -187,8 +211,18 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "LOG IN",
+                    text = if (isLoginMode) "LOG IN" else "SIGN UP",
                     style = Typography.labelLarge
+                )
+            }
+
+            TextButton(
+                onClick = { isLoginMode = !isLoginMode },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(
+                    text = if (isLoginMode) "Don't have an account? Sign up" else "Already have an account? Log in",
+                    color = NavyDeep
                 )
             }
         }

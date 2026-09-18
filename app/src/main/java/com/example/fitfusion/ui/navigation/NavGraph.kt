@@ -16,7 +16,13 @@ import com.example.fitfusion.ui.studio.StudioViewModel
 import com.example.fitfusion.ui.wardrobe.WardrobeScreen
 import com.example.fitfusion.ui.wardrobe.WardrobeViewModel
 
+import androidx.compose.material.icons.filled.Lock
+import com.example.fitfusion.ui.auth.AuthScreen
+import com.example.fitfusion.data.database.SupabaseClient
+import io.github.jan.supabase.auth.auth
+
 sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
+    object Auth : Screen("auth", Icons.Default.Lock, "AUTH")
     object Closet : Screen("closet", Icons.Default.Checkroom, "CLOSET")
     object Studio : Screen("studio", Icons.Default.ColorLens, "STUDIO")
     object Outfits : Screen("outfits", Icons.Default.Style, "OUTFITS")
@@ -29,10 +35,16 @@ fun FitFusionNavGraph(
     studioViewModel: StudioViewModel,
     outfitsViewModel: OutfitsViewModel
 ) {
+    val session = SupabaseClient.client.auth.currentSessionOrNull()
+    val startDest = if (session != null) Screen.Closet.route else Screen.Auth.route
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Closet.route
+        startDestination = startDest
     ) {
+        composable(Screen.Auth.route) {
+            AuthScreen()
+        }
         composable(Screen.Closet.route) {
             WardrobeScreen(wardrobeViewModel)
         }

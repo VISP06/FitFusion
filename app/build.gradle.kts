@@ -101,10 +101,9 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     //Supabase related dependencies
-    // Supabase related dependencies
-    implementation(platform("io.github.jan-tennert.supabase:bom:2.5.0"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.1"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.ktor:ktor-client-android:2.3.12")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+    implementation("io.ktor:ktor-client-android:3.0.0") // Ktor 3 is required for Supabase 3.x
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
