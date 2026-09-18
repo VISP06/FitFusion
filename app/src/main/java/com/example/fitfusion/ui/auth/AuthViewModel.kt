@@ -17,7 +17,8 @@ import io.github.jan.supabase.auth.providers.Google
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    object Success : AuthState()
+    object Authenticated : AuthState()
+    object VerificationRequired : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -33,7 +34,7 @@ class AuthViewModel : ViewModel() {
             _authState.value = AuthState.Error("Passwords do not match.")
             return
         }
-        // TODO: Persist keepSignedIn boolean to DataStore to handle manual session wipe on next app launch
+        // TODO: keepSignedIn is false. Save a flag to SharedPreferences to call signOut() on next app launch.
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -43,7 +44,7 @@ class AuthViewModel : ViewModel() {
                     // Add user metadata
                     val metadata = JsonObject(mapOf("username" to JsonPrimitive(username)))
                 }
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.VerificationRequired
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An error occurred during sign up")
             }
@@ -51,7 +52,7 @@ class AuthViewModel : ViewModel() {
     }
 
     fun signIn(email: String, password: String, keepSignedIn: Boolean) {
-        // TODO: Persist keepSignedIn boolean to DataStore to handle manual session wipe on next app launch
+        // TODO: keepSignedIn is false. Save a flag to SharedPreferences to call signOut() on next app launch.
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -59,7 +60,7 @@ class AuthViewModel : ViewModel() {
                     this.email = email
                     this.password = password
                 }
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.Authenticated
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An error occurred during sign in")
             }
@@ -71,7 +72,7 @@ class AuthViewModel : ViewModel() {
             _authState.value = AuthState.Loading
             try {
                 SupabaseClient.client.auth.signOut()
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.Idle
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An error occurred during sign out")
             }
@@ -82,7 +83,7 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Loading
         try {
             SupabaseClient.client.auth.signInWith(Google)
-            _authState.value = AuthState.Success
+            _authState.value = AuthState.Authenticated
         } catch (e: Exception) {
             _authState.value = AuthState.Error(e.message ?: "An error occurred during Google sign in")
         }

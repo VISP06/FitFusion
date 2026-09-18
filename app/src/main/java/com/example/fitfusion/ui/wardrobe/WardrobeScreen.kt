@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,7 +39,7 @@ import com.example.fitfusion.ui.theme.NavyDeep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WardrobeScreen(viewModel: WardrobeViewModel) {
+fun WardrobeScreen(viewModel: WardrobeViewModel, onNavigateToProfile: () -> Unit = {}) {
     val items by viewModel.clothingItems.collectAsState()
     val isSheetOpen by viewModel.isSheetOpen.collectAsState()
     val currentPhotoUri by viewModel.currentPhotoUri.collectAsState()
@@ -70,13 +71,23 @@ fun WardrobeScreen(viewModel: WardrobeViewModel) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = "CLOSET",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier.padding(16.dp),
-                color = NavyDeep
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "CLOSET",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Black,
+                    color = NavyDeep
+                )
+                IconButton(onClick = onNavigateToProfile) {
+                    Icon(Icons.Default.Person, contentDescription = "Profile", tint = NavyDeep)
+                }
+            }
 
             if (items.isEmpty()) {
                 Box(

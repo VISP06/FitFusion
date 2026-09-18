@@ -69,7 +69,8 @@ import kotlinx.coroutines.launch
 fun AuthScreen(
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = viewModel(),
-    onAuthSuccess: () -> Unit
+    onAuthSuccess: () -> Unit,
+    onVerificationRequired: () -> Unit
 ) {
     val authState by viewModel.authState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -80,8 +81,11 @@ fun AuthScreen(
             is AuthState.Error -> {
                 snackbarHostState.showSnackbar(message = (authState as AuthState.Error).message)
             }
-            is AuthState.Success -> {
+            is AuthState.Authenticated -> {
                 onAuthSuccess()
+            }
+            is AuthState.VerificationRequired -> {
+                onVerificationRequired()
             }
             else -> {}
         }
@@ -94,12 +98,16 @@ fun AuthScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var keepSignedIn by remember { mutableStateOf(false) }
+    var keepSignedIn by remember { mutableStateOf(true) }
 
     val emailError = getEmailError(email)
     val passwordError = getPasswordError(password)
     val confirmPasswordError = if (!isLoginMode && confirmPassword.isNotEmpty() && password != confirmPassword) "Passwords do not match" else null
-    val isFormValid = email.isNotEmpty() && password.isNotEmpty() && emailError == null && passwordError == null && (isLoginMode || (username.isNotEmpty() && confirmPasswordError == null))
+    val isFormValid = if (isLoginMode) {
+        email.isNotEmpty() && password.isNotEmpty()
+    } else {
+        email.isNotEmpty() && password.isNotEmpty() && emailError == null && passwordError == null && username.isNotEmpty() && confirmPasswordError == null
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -191,7 +199,7 @@ fun AuthScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                isError = emailError != null,
+                isError = !isLoginMode && emailError != null,
                 placeholder = { Text("agent@fitfusion.com", color = NavyDeep.copy(alpha = 0.5f)) },
                 leadingIcon = {
                     Icon(
@@ -207,7 +215,7 @@ fun AuthScreen(
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
             )
-            if (emailError != null) {
+            if (!isLoginMode && emailError != null) {
                 Text(text = emailError, color = Color(0xFF8B0000), fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp))
             }
 
@@ -220,7 +228,7 @@ fun AuthScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                isError = passwordError != null,
+                isError = !isLoginMode && passwordError != null,
                 placeholder = { Text("••••••••", color = NavyDeep.copy(alpha = 0.5f)) },
                 leadingIcon = {
                     Icon(
@@ -258,7 +266,7 @@ fun AuthScreen(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            if (passwordError != null) Text(text = passwordError, color = Color(0xFF8B0000), fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            if (!isLoginMode && passwordError != null) Text(text = passwordError, color = Color(0xFF8B0000), fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
 
             if (!isLoginMode) {
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
@@ -408,7 +416,7 @@ fun AuthScreen(
 @Composable
 fun ScreenTester() {
     FitFusionTheme {
-        AuthScreen(onAuthSuccess = {})
+        AuthScreen(onAuthSuccess = {}, onVerificationRequired = {})
     }
 }
 
