@@ -43,7 +43,13 @@ fun FitFusionNavGraph(
         startDestination = startDest
     ) {
         composable(Screen.Auth.route) {
-            AuthScreen()
+            AuthScreen(
+                onAuthSuccess = {
+                    navController.navigate(Screen.Closet.route) {
+                        popUpTo(Screen.Auth.route) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.Closet.route) {
             WardrobeScreen(wardrobeViewModel)
