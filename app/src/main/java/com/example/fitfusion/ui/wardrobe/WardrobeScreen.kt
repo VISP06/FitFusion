@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Checkroom
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,7 +38,7 @@ import com.example.fitfusion.ui.theme.NavyDeep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WardrobeScreen(viewModel: WardrobeViewModel, onNavigateToProfile: () -> Unit = {}) {
+fun WardrobeScreen(viewModel: WardrobeViewModel) {
     val items by viewModel.clothingItems.collectAsState()
     val isSheetOpen by viewModel.isSheetOpen.collectAsState()
     val currentPhotoUri by viewModel.currentPhotoUri.collectAsState()
@@ -75,7 +74,6 @@ fun WardrobeScreen(viewModel: WardrobeViewModel, onNavigateToProfile: () -> Unit
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -84,9 +82,6 @@ fun WardrobeScreen(viewModel: WardrobeViewModel, onNavigateToProfile: () -> Unit
                     fontWeight = FontWeight.Black,
                     color = NavyDeep
                 )
-                IconButton(onClick = onNavigateToProfile) {
-                    Icon(Icons.Default.Person, contentDescription = "Profile", tint = NavyDeep)
-                }
             }
 
             if (items.isEmpty()) {

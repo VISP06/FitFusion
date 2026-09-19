@@ -75,10 +75,7 @@ fun FitFusionNavGraph(
             )
         }
         composable(Screen.Closet.route) {
-            WardrobeScreen(
-                viewModel = wardrobeViewModel,
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) }
-            )
+            WardrobeScreen(viewModel = wardrobeViewModel)
         }
         composable(Screen.Studio.route) {
             StudioScreen(studioViewModel)
@@ -89,12 +86,14 @@ fun FitFusionNavGraph(
         composable(Screen.Profile.route) {
             val authViewModel: AuthViewModel = viewModel()
             ProfileScreen(
-                viewModel = authViewModel,
+                userEmail = SupabaseClient.client.auth.currentUserOrNull()?.email ?: "Unknown User",
+                onNavigateBack = { navController.popBackStack() },
                 onSignedOut = {
                     navController.navigate(Screen.Auth.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                viewModel = authViewModel
             )
         }
     }

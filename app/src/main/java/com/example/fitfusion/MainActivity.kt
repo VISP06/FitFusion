@@ -6,9 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -90,7 +93,9 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            if (currentDestination?.route != Screen.Auth.route) {
+            if (currentDestination?.route != Screen.Auth.route &&
+                currentDestination?.route != Screen.Profile.route
+            ) {
                 Surface(
                     modifier = Modifier.bottomBorder(2.dp, NavyDeep)
                 ) {
@@ -103,6 +108,15 @@ fun MainScreen(
                                 color = BeigeAccent
                             )
                         },
+                        actions = {
+                            IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
+                                Icon(
+                                    Icons.Default.Menu,
+                                    contentDescription = "Menu",
+                                    tint = NavyDeep
+                                )
+                            }
+                        },
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                             containerColor = NavyDeep
                         )
@@ -111,7 +125,9 @@ fun MainScreen(
             }
         },
         bottomBar = {
-            if (currentDestination?.route != Screen.Auth.route) {
+            if (currentDestination?.route != Screen.Auth.route &&
+                currentDestination?.route != Screen.Profile.route
+            ) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.border(
