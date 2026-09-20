@@ -5,12 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "clothing_items")
 data class ClothingItem(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey val id: String = java.util.UUID.randomUUID().toString(),
+    val userId: String,
     val imageUri: String?,
     val category: String,
     val color: String,
-    val material: String
+    val material: String,
+    val isSynced: Boolean = false
 )
 /*
     uri in imageUri stands for Uniform Resource Identifier

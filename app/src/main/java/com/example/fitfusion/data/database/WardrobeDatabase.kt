@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.example.fitfusion.data.entity.ClothingItem
 import com.example.fitfusion.data.entity.Outfit
 
-@Database(entities = [ClothingItem::class, Outfit::class], version = 2, exportSchema = false)
+@Database(entities = [ClothingItem::class, Outfit::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class WardrobeDatabase : RoomDatabase() {
 

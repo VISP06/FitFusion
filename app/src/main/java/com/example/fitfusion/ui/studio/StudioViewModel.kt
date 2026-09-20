@@ -33,8 +33,8 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    private val _selectedClothes = MutableStateFlow<Set<Int>>(emptySet())
-    val selectedClothes: StateFlow<Set<Int>> = _selectedClothes.asStateFlow()
+    private val _selectedClothes = MutableStateFlow<Set<String>>(emptySet())
+    val selectedClothes: StateFlow<Set<String>> = _selectedClothes.asStateFlow()
 
     private val _generatedOutfits = MutableStateFlow<List<Outfit>>(emptyList())
     val generatedOutfits: StateFlow<List<Outfit>> = _generatedOutfits.asStateFlow()
@@ -92,7 +92,7 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
         initialValue = false
     )
 
-    fun toggleSelection(itemId: Int) {
+    fun toggleSelection(itemId: String) {
         _selectedClothes.value = if (_selectedClothes.value.contains(itemId)) {
             _selectedClothes.value - itemId
         } else {
@@ -127,13 +127,13 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
                     1. You must return ONLY a clean JSON array containing exactly 3 outfit objects. Do not include markdown code block syntax (like ```json ... ```). Return raw JSON text only.
                     2. Every outfit object inside the JSON array MUST contain the following keys exactly:
                        - "name": A stylish name for the outfit vibe (e.g., "Urban Explorer", "Minimalist Chic", "Retro Classic").
-                       - "top": The exact ID (integer) of the selected top used in this outfit from the provided list.
-                       - "bottom": The exact ID (integer) of the selected bottom used in this outfit from the provided list.
-                       - "footwear": The exact ID (integer) of the selected footwear used in this outfit from the provided list, or null if none is used.
-                       - "accessories": The exact ID (integer) of the selected accessory used in this outfit from the provided list, or null if none is used.
+                       - "top": The exact ID (string) of the selected top used in this outfit from the provided list.
+                       - "bottom": The exact ID (string) of the selected bottom used in this outfit from the provided list.
+                       - "footwear": The exact ID (string) of the selected footwear used in this outfit from the provided list, or null if none is used.
+                       - "accessories": The exact ID (string) of the selected accessory used in this outfit from the provided list, or null if none is used.
                        - "reasoning": For the 'reasoning' field, you MUST write exactly 1 or 2 short, concise sentences explaining why the outfit works. Refer to items natively by their color and category (e.g., 'the black t-shirt pairs well with the beige pants'). You are strictly FORBIDDEN from using or displaying the item IDs in the reasoning text.
                     
-                    You must build outfits using ONLY the items provided in the selected items list. For the 'top', 'bottom', 'footwear', and 'accessories' fields in your JSON, you MUST return the exact integer ID of the item. You are strictly FORBIDDEN from recommending items or inventing fake IDs. If no footwear or accessory from the list fits the outfit, or if the user did not provide any, you MUST return `null` for that key.
+                    You must build outfits using ONLY the items provided in the selected items list. For the 'top', 'bottom', 'footwear', and 'accessories' fields in your JSON, you MUST return the exact string ID of the item. You are strictly FORBIDDEN from recommending items or inventing fake IDs. If no footwear or accessory from the list fits the outfit, or if the user did not provide any, you MUST return `null` for that key.
                     
                     Here are the user's selected clothing items:
                     $descriptionString
@@ -164,28 +164,23 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
 
                     val itemsInOutfit = mutableListOf<ClothingItem>()
 
-                    // Parse top
-                    val topId = obj.optInt("top", -1)
+                    val topId = obj.optString("top", "")
                     selectedItems.find { it.id == topId }?.let { itemsInOutfit.add(it) }
 
-                    // Parse bottom
-                    val bottomId = obj.optInt("bottom", -1)
+                    val bottomId = obj.optString("bottom", "")
                     selectedItems.find { it.id == bottomId }?.let { itemsInOutfit.add(it) }
 
-                    // Parse footwear
                     if (obj.has("footwear") && !obj.isNull("footwear")) {
-                        val footwearVal = obj.get("footwear")
-                        if (footwearVal is Number) {
-                            selectedItems.find { it.id == footwearVal.toInt() }?.let { itemsInOutfit.add(it) }
-                        } else if (footwearVal is String && footwearVal.isNotEmpty()) {
-                            val parsedId = footwearVal.toIntOrNull()
-                            if (parsedId != null) {
-                                selectedItems.find { it.id == parsedId }?.let { itemsInOutfit.add(it) }
+                        val footwearVal = obj.get("footwear").toString()
+                        if (footwearVal.isNotEmpty()) {
+                            val matched = selectedItems.find { it.id == footwearVal }
+                            if (matched != null) {
+                                itemsInOutfit.add(matched)
                             } else {
-                                // Recommended footwear
                                 itemsInOutfit.add(
                                     ClothingItem(
-                                        id = -1,
+                                        id = "recommended-footwear",
+                                        userId = "",
                                         imageUri = null,
                                         category = "Recommended Footwear",
                                         color = footwearVal,
@@ -196,20 +191,17 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
                         }
                     }
 
-                    // Parse accessories
                     if (obj.has("accessories") && !obj.isNull("accessories")) {
-                        val accessoriesVal = obj.get("accessories")
-                        if (accessoriesVal is Number) {
-                            selectedItems.find { it.id == accessoriesVal.toInt() }?.let { itemsInOutfit.add(it) }
-                        } else if (accessoriesVal is String && accessoriesVal.isNotEmpty()) {
-                            val parsedId = accessoriesVal.toIntOrNull()
-                            if (parsedId != null) {
-                                selectedItems.find { it.id == parsedId }?.let { itemsInOutfit.add(it) }
+                        val accessoriesVal = obj.get("accessories").toString()
+                        if (accessoriesVal.isNotEmpty()) {
+                            val matched = selectedItems.find { it.id == accessoriesVal }
+                            if (matched != null) {
+                                itemsInOutfit.add(matched)
                             } else {
-                                // Recommended accessory
                                 itemsInOutfit.add(
                                     ClothingItem(
-                                        id = -2,
+                                        id = "recommended-accessory",
+                                        userId = "",
                                         imageUri = null,
                                         category = "Recommended Accessory",
                                         color = accessoriesVal,
@@ -238,7 +230,9 @@ class StudioViewModel(private val dao: WardrobeDao) : ViewModel() {
 
     fun saveOutfit(outfit: Outfit) {
         viewModelScope.launch {
-            val actualItems = outfit.items.filter { it.id > 0 }
+            val actualItems = outfit.items.filter {
+                it.id != "recommended-footwear" && it.id != "recommended-accessory"
+            }
             val dbOutfit = outfit.copy(items = actualItems)
             dao.insertOutfit(dbOutfit)
         }

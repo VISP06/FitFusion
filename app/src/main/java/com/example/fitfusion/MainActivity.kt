@@ -1,11 +1,15 @@
 package com.example.fitfusion
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -21,8 +25,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +43,10 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.fitfusion.data.database.SupabaseClient
 import com.example.fitfusion.data.database.WardrobeDatabase
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
 import com.example.fitfusion.ui.navigation.FitFusionNavGraph
 import com.example.fitfusion.ui.navigation.Screen
 import com.example.fitfusion.ui.outfits.OutfitsViewModel
@@ -81,6 +93,37 @@ fun MainScreen(
     studioViewModel: StudioViewModel,
     outfitsViewModel: OutfitsViewModel
 ) {
+    val supabase = SupabaseClient.client
+    val sessionStatus by supabase.auth.sessionStatus.collectAsState()
+    val context = LocalContext.current
+
+    if (sessionStatus is SessionStatus.Initializing) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFEAE4D9)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = NavyDeep)
+        }
+        return
+    }
+
+    val keepSignedIn = context.getSharedPreferences("FitFusionPrefs", Context.MODE_PRIVATE)
+        .getBoolean("KEEP_SIGNED_IN", true)
+
+    LaunchedEffect(sessionStatus) {
+        if (sessionStatus is SessionStatus.Authenticated && !keepSignedIn) {
+            supabase.auth.signOut()
+        }
+    }
+
+    val startDest = if (sessionStatus is SessionStatus.Authenticated && keepSignedIn) {
+        Screen.Closet.route
+    } else {
+        Screen.Auth.route
+    }
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -113,7 +156,7 @@ fun MainScreen(
                                 Icon(
                                     Icons.Default.Menu,
                                     contentDescription = "Menu",
-                                    tint = NavyDeep
+                                    tint = Color(0xFFEAE4D9)
                                 )
                             }
                         },
@@ -167,7 +210,8 @@ fun MainScreen(
                 navController = navController,
                 wardrobeViewModel = wardrobeViewModel,
                 studioViewModel = studioViewModel,
-                outfitsViewModel = outfitsViewModel
+                outfitsViewModel = outfitsViewModel,
+                startDestination = startDest
             )
         }
     }

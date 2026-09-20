@@ -25,6 +25,7 @@ import com.example.fitfusion.ui.auth.VerificationScreen
 import com.example.fitfusion.data.database.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.key
 
 sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
     object Auth : Screen("auth", Icons.Default.Lock, "AUTH")
@@ -40,15 +41,14 @@ fun FitFusionNavGraph(
     navController: NavHostController,
     wardrobeViewModel: WardrobeViewModel,
     studioViewModel: StudioViewModel,
-    outfitsViewModel: OutfitsViewModel
+    outfitsViewModel: OutfitsViewModel,
+    startDestination: String
 ) {
-    val session = SupabaseClient.client.auth.currentSessionOrNull()
-    val startDest = if (session != null) Screen.Closet.route else Screen.Auth.route
-
-    NavHost(
-        navController = navController,
-        startDestination = startDest
-    ) {
+    key(startDestination) {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination
+        ) {
         composable(Screen.Auth.route) {
             val authViewModel: AuthViewModel = viewModel()
             AuthScreen(
@@ -95,6 +95,7 @@ fun FitFusionNavGraph(
                 },
                 viewModel = authViewModel
             )
+        }
         }
     }
 }

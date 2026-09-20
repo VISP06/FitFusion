@@ -11,8 +11,10 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitfusion.BuildConfig
+import com.example.fitfusion.data.database.SupabaseClient
 import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.entity.ClothingItem
+import io.github.jan.supabase.auth.auth
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
@@ -150,7 +152,9 @@ class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
                     saveImageToInternalStorage(context, uri)
                 }
                 if (internalPath != null) {
+                    val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return@launch
                     val newItem = ClothingItem(
+                        userId = userId,
                         imageUri = internalPath,
                         category = category,
                         color = color,

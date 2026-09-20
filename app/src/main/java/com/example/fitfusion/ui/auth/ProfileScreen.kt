@@ -37,7 +37,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fitfusion.data.database.SupabaseClient
 import com.example.fitfusion.ui.theme.NavyDeep
+import io.github.jan.supabase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,10 @@ fun ProfileScreen(
     onSignedOut: () -> Unit,
     viewModel: AuthViewModel
 ) {
+    val supabase = SupabaseClient.client
+    val username = supabase.auth.currentUserOrNull()?.userMetadata?.get("username")?.toString()
+        ?.replace("\"", "") ?: "Agent"
+
     Scaffold(
         containerColor = Color(0xFFEAE4D9),
         topBar = {
@@ -91,10 +97,15 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = userEmail,
-                fontWeight = FontWeight.Bold,
+                text = username,
+                fontWeight = FontWeight.Black,
                 color = NavyDeep,
-                fontSize = 18.sp
+                fontSize = 22.sp
+            )
+            Text(
+                text = userEmail,
+                color = NavyDeep.copy(alpha = 0.7f),
+                fontSize = 14.sp
             )
 
             Spacer(modifier = Modifier.height(32.dp))

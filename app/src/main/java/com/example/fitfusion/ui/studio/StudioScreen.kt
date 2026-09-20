@@ -221,8 +221,8 @@ fun StudioScreen(viewModel: StudioViewModel) {
 fun CategorySection(
     title: String,
     items: List<ClothingItem>,
-    selectedIds: Set<Int>,
-    onItemClick: (Int) -> Unit
+    selectedIds: Set<String>,
+    onItemClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -325,7 +325,7 @@ fun OutfitResultCard(
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(outfit.items) { item ->
-                            val isAccessory = viewModel.getMacroCategory(item) == MacroCategory.ACCESSORIES || item.id == -2 || item.category.lowercase().contains("accessory")
+                            val isAccessory = viewModel.getMacroCategory(item) == MacroCategory.ACCESSORIES || item.id == "recommended-accessory" || item.category.lowercase().contains("accessory")
                             val isAccessoryEmpty = isAccessory && (
                                 item.color.isBlank() || 
                                 item.color.lowercase() == "null" || 
