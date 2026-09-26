@@ -21,6 +21,9 @@ interface WardrobeDao {
     @Query("SELECT * FROM clothing_items ORDER BY id DESC")
     fun getAllClothingItems(): Flow<List<ClothingItem>>
 
+    @Query("SELECT * FROM clothing_items WHERE isSynced = 0")
+    suspend fun getUnsyncedClothingItems(): List<ClothingItem>
+
     // Outfit Operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOutfit(outfit: Outfit)

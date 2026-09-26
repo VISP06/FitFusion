@@ -11,9 +11,10 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitfusion.BuildConfig
-import com.example.fitfusion.data.database.SupabaseClient
+import com.example.fitfusion.data.database.SyncRepository
 import com.example.fitfusion.data.database.WardrobeDao
 import com.example.fitfusion.data.entity.ClothingItem
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
@@ -26,7 +27,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class WardrobeViewModel(private val dao: WardrobeDao) : ViewModel() {
+class WardrobeViewModel(
+    private val dao: WardrobeDao,
+    private val supabase: SupabaseClient,
+    private val syncRepository: SyncRepository
+) : ViewModel() {
 
     val clothingItems: StateFlow<List<ClothingItem>> = dao.getAllClothingItems()
         .stateIn(
