@@ -51,6 +51,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onSignedOut: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
+    onNavigateToMannequin: () -> Unit = {},
     viewModel: AuthViewModel
 ) {
     val supabase = SupabaseClient.client
@@ -116,6 +117,7 @@ fun ProfileScreen(
 
             MenuListItem("Settings", Icons.Default.Settings) {}
             MenuListItem("Preferences", Icons.Default.Tune) {}
+            MenuListItem("Digital Mannequin", androidx.compose.material.icons.Icons.Default.Person) { onNavigateToMannequin() }
             MenuListItem("Privacy Policy", Icons.Default.Security) { onNavigateToPrivacy() }
             MenuListItem("Support", Icons.Default.HelpOutline) {}
             MenuListItem("Sign Out", Icons.AutoMirrored.Filled.Logout) {

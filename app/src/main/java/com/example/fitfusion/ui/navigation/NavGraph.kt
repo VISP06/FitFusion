@@ -20,12 +20,16 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import com.example.fitfusion.ui.auth.AuthScreen
 import com.example.fitfusion.ui.auth.AuthViewModel
+import com.example.fitfusion.ui.auth.ManifestoGateScreen
+import com.example.fitfusion.ui.auth.MannequinScreen
 import com.example.fitfusion.ui.auth.ProfileScreen
 import com.example.fitfusion.ui.auth.VerificationScreen
 import com.example.fitfusion.data.database.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.key
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
     object Auth : Screen("auth", Icons.Default.Lock, "AUTH")
@@ -54,7 +58,10 @@ fun FitFusionNavGraph(
             AuthScreen(
                 viewModel = authViewModel,
                 onAuthSuccess = {
-                    navController.navigate(Screen.Closet.route) {
+                    val user = SupabaseClient.client.auth.currentUserOrNull()
+                    val hasAccepted = user?.userMetadata?.get("manifesto_accepted")?.jsonPrimitive?.booleanOrNull ?: false
+                    val targetRoute = if (hasAccepted) Screen.Closet.route else "manifesto"
+                    navController.navigate(targetRoute) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
                 },
@@ -77,6 +84,18 @@ fun FitFusionNavGraph(
         composable(Screen.Closet.route) {
             WardrobeScreen(viewModel = wardrobeViewModel)
         }
+        composable("home") {
+            WardrobeScreen(viewModel = wardrobeViewModel)
+        }
+        composable("manifesto") {
+            val authViewModel: AuthViewModel = viewModel()
+            ManifestoGateScreen(
+                viewModel = authViewModel,
+                onNavigateToApp = {
+                    navController.navigate("home") { popUpTo("manifesto") { inclusive = true } }
+                }
+            )
+        }
         composable(Screen.Studio.route) {
             StudioScreen(studioViewModel)
         }
@@ -94,6 +113,7 @@ fun FitFusionNavGraph(
                     }
                 },
                 onNavigateToPrivacy = { navController.navigate("privacy") },
+                onNavigateToMannequin = { navController.navigate("mannequin") },
                 viewModel = authViewModel
             )
         }
@@ -101,6 +121,9 @@ fun FitFusionNavGraph(
             com.example.fitfusion.ui.auth.PrivacyPolicyScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+        composable("mannequin") {
+            MannequinScreen(onNavigateBack = { navController.popBackStack() })
         }
         }
     }

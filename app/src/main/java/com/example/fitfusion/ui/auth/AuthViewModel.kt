@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.fitfusion.data.database.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -26,8 +28,30 @@ sealed class AuthState {
 data class UserMetadata(val username: String)
 
 class AuthViewModel : ViewModel() {
+    private val supabase = SupabaseClient.client
+
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
+    fun acceptManifesto(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val currentUser = supabase.auth.currentUserOrNull() ?: return@launch
+                val currentMeta = currentUser.userMetadata ?: kotlinx.serialization.json.JsonObject(emptyMap())
+                val newMeta = currentMeta.toMutableMap().apply {
+                    put("manifesto_accepted", kotlinx.serialization.json.JsonPrimitive(true))
+                }
+                supabase.auth.updateUser { data = kotlinx.serialization.json.JsonObject(newMeta) }
+                withContext(Dispatchers.Main) { onSuccess() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun logout() {
+        signOut()
+    }
 
     fun signUp(email: String, password: String, confirmPassword: String, username: String, keepSignedIn: Boolean) {
         if (password != confirmPassword) {

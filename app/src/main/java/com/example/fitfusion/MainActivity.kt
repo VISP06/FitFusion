@@ -56,6 +56,8 @@ import com.example.fitfusion.ui.theme.BeigeAccent
 import com.example.fitfusion.ui.theme.FitFusionTheme
 import com.example.fitfusion.ui.theme.NavyDeep
 import com.example.fitfusion.ui.wardrobe.WardrobeViewModel
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,7 +117,9 @@ fun MainScreen(
     }
 
     val startDest = if (sessionStatus is SessionStatus.Authenticated && keepSignedIn) {
-        Screen.Closet.route
+        val user = supabase.auth.currentUserOrNull()
+        val hasAccepted = user?.userMetadata?.get("manifesto_accepted")?.jsonPrimitive?.booleanOrNull ?: false
+        if (hasAccepted) Screen.Closet.route else "manifesto"
     } else {
         Screen.Auth.route
     }
@@ -133,7 +137,9 @@ fun MainScreen(
     Scaffold(
         topBar = {
             if (currentDestination?.route != Screen.Auth.route &&
-                currentDestination?.route != Screen.Profile.route
+                currentDestination?.route != Screen.Profile.route &&
+                currentDestination?.route != "manifesto" &&
+                currentDestination?.route != "mannequin"
             ) {
                 Surface(
                     modifier = Modifier.bottomBorder(2.dp, NavyDeep)
@@ -165,7 +171,9 @@ fun MainScreen(
         },
         bottomBar = {
             if (currentDestination?.route != Screen.Auth.route &&
-                currentDestination?.route != Screen.Profile.route
+                currentDestination?.route != Screen.Profile.route &&
+                currentDestination?.route != "manifesto" &&
+                currentDestination?.route != "mannequin"
             ) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -175,7 +183,7 @@ fun MainScreen(
                     )
                 ) {
                     screens.forEach { screen ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route || (screen == Screen.Closet && it.route == "home") } == true
                         
                         NavigationBarItem(
                             icon = { Icon(screen.icon, contentDescription = screen.label) },
