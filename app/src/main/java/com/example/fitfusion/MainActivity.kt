@@ -9,7 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import com.example.fitfusion.data.database.SyncRepository
+import com.example.fitfusion.ui.splash.AnimatedSplashScreen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -62,11 +63,13 @@ class MainActivity : ComponentActivity() {
 
         val database = WardrobeDatabase.getDatabase(applicationContext)
         val dao = database.wardrobeDao()
+        val supabaseClient = SupabaseClient.client
+        val syncRepository = SyncRepository(dao, supabaseClient)
 
         val factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return when {
-                    modelClass.isAssignableFrom(WardrobeViewModel::class.java) -> WardrobeViewModel(dao) as T
+                    modelClass.isAssignableFrom(WardrobeViewModel::class.java) -> WardrobeViewModel(dao, supabaseClient, syncRepository) as T
                     modelClass.isAssignableFrom(StudioViewModel::class.java) -> StudioViewModel(dao) as T
                     modelClass.isAssignableFrom(OutfitsViewModel::class.java) -> OutfitsViewModel(dao) as T
                     else -> throw IllegalArgumentException("Unknown ViewModel class")
@@ -98,14 +101,7 @@ fun MainScreen(
     val context = LocalContext.current
 
     if (sessionStatus is SessionStatus.Initializing) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFEAE4D9)),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = NavyDeep)
-        }
+        AnimatedSplashScreen()
         return
     }
 

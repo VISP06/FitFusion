@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.example.fitfusion.data.database.SupabaseClient
 import com.example.fitfusion.ui.theme.NavyDeep
 import io.github.jan.supabase.auth.auth
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,11 +50,12 @@ fun ProfileScreen(
     userEmail: String,
     onNavigateBack: () -> Unit,
     onSignedOut: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
     viewModel: AuthViewModel
 ) {
     val supabase = SupabaseClient.client
-    val username = supabase.auth.currentUserOrNull()?.userMetadata?.get("username")?.toString()
-        ?.replace("\"", "") ?: "Agent"
+    val user = supabase.auth.currentUserOrNull()
+    val username = user?.userMetadata?.get("username")?.jsonPrimitive?.contentOrNull ?: "User"
 
     Scaffold(
         containerColor = Color(0xFFEAE4D9),
@@ -98,7 +102,7 @@ fun ProfileScreen(
 
             Text(
                 text = username,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight.Bold,
                 color = NavyDeep,
                 fontSize = 22.sp
             )
@@ -112,6 +116,7 @@ fun ProfileScreen(
 
             MenuListItem("Settings", Icons.Default.Settings) {}
             MenuListItem("Preferences", Icons.Default.Tune) {}
+            MenuListItem("Privacy Policy", Icons.Default.Security) { onNavigateToPrivacy() }
             MenuListItem("Support", Icons.Default.HelpOutline) {}
             MenuListItem("Sign Out", Icons.AutoMirrored.Filled.Logout) {
                 viewModel.signOut()

@@ -41,8 +41,9 @@ class AuthViewModel : ViewModel() {
                 SupabaseClient.client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = password
-                    // Add user metadata
-                    val metadata = JsonObject(mapOf("username" to JsonPrimitive(username)))
+                    data = kotlinx.serialization.json.buildJsonObject {
+                        put("username", kotlinx.serialization.json.JsonPrimitive(username))
+                    }
                 }
                 _authState.value = AuthState.VerificationRequired
             } catch (e: Exception) {

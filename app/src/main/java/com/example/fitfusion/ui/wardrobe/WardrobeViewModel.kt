@@ -157,15 +157,19 @@ class WardrobeViewModel(
                     saveImageToInternalStorage(context, uri)
                 }
                 if (internalPath != null) {
-                    val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: return@launch
                     val newItem = ClothingItem(
-                        userId = userId,
+                        id = java.util.UUID.randomUUID().toString(),
+                        userId = supabase.auth.currentUserOrNull()?.id ?: return@launch,
                         imageUri = internalPath,
                         category = category,
                         color = color,
-                        material = material
+                        material = material,
+                        isSynced = false
                     )
                     dao.insertClothingItem(newItem)
+                    viewModelScope.launch(Dispatchers.IO) {
+                        syncRepository.pushUnsyncedItems()
+                    }
                     closeSheet()
                 } else {
                     withContext(Dispatchers.Main) {

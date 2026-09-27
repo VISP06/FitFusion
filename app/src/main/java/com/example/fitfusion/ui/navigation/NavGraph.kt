@@ -93,7 +93,13 @@ fun FitFusionNavGraph(
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onNavigateToPrivacy = { navController.navigate("privacy") },
                 viewModel = authViewModel
+            )
+        }
+        composable("privacy") {
+            com.example.fitfusion.ui.auth.PrivacyPolicyScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         }
